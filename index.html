@@ -10,8 +10,10 @@
 </head>
 <body>
   <div id="bg" class="bg"></div>
-  <img id="portrait" class="portrait hidden" alt="" />
   <div class="vignette"></div>
+  <canvas id="fxBack" class="fx back"></canvas>
+  <div id="portraitCard" class="pcard hidden"><img id="portrait" alt="" /><div class="pcard-shine"></div></div>
+  <canvas id="fxFront" class="fx front"></canvas>
 
   <!-- Start screen -->
   <section id="start" class="screen">
@@ -19,7 +21,8 @@
       <div class="eyebrow">THE DRAFT</div>
       <h1>ANIME DRAFT</h1>
       <p>Each round you draw a random character. Put them in the category where they're <b>strongest</b>.
-        Fill all 8 slots. The highest total wins.</p>
+        Fill all 8 slots, then your cards <b>clash</b> one-on-one against your opponent's in each category.
+        Win the most clashes to win the match.</p>
       <p class="small">Tip: <b>BUM</b> rewards your <i>weakest</i> draw. The worse they are overall, the more points they score there. Every stat is rated 1-100.</p>
       <label class="field">Your name <input id="nameInput" maxlength="16" placeholder="YOU" /></label>
       <label class="check"><input type="checkbox" id="hintToggle" /> Show ratings while drafting (easy mode)</label>
@@ -45,11 +48,12 @@
 
       <div class="reveal" id="reveal">
         <div class="reveal-who" id="revealWho">YOUR DRAW</div>
+        <div class="reveal-fx" id="revealFx"></div>
         <div class="reveal-title" id="revealTitle"></div>
         <div class="reveal-name" id="revealName"></div>
         <div class="reveal-series" id="revealSeries"></div>
         <div class="reveal-q" id="revealQ"></div>
-        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - the highest total wins / keys 1 - 8</div>
+        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - win the most clashes / keys 1 - 8</div>
       </div>
     </div>
 
@@ -62,11 +66,39 @@
     <button id="forfeitBtn" class="btn forfeit">FORFEIT</button>
   </section>
 
+  <!-- Clash -->
+  <section id="clash" class="screen hidden">
+    <div class="clash-top">
+      <div class="eyebrow gold">THE CLASH</div>
+      <div class="clash-round" id="clashRound">ROUND 1 / 8</div>
+      <div class="clash-cat" id="clashCat">STRENGTH</div>
+      <div class="clash-score"><span id="csYouName">YOU</span><b id="csYou">0</b><i>-</i><b id="csOpp">0</b><span id="csOppName">OPP</span></div>
+    </div>
+    <div class="arena">
+      <div class="fcard left" id="fcYou">
+        <div class="fimg"><img alt="" /></div>
+        <div class="fname"></div>
+        <div class="ffx"></div>
+        <div class="fnum">0</div>
+      </div>
+      <div class="vs" id="clashVs">VS</div>
+      <div class="fcard right" id="fcOpp">
+        <div class="fimg"><img alt="" /></div>
+        <div class="fname"></div>
+        <div class="ffx"></div>
+        <div class="fnum">0</div>
+      </div>
+    </div>
+    <div class="clash-banner hidden" id="clashBanner"></div>
+    <button id="skipBtn" class="btn skip">SKIP &#9656;&#9656;</button>
+  </section>
+
   <!-- Results -->
   <section id="results" class="screen hidden">
     <div class="results-card">
       <div class="eyebrow gold">FINAL RESULTS</div>
       <h2 id="resultTitle">YOU WIN</h2>
+      <div class="result-sub" id="resultSub"></div>
       <table class="results-table">
         <thead><tr><th id="rYou">YOU</th><th></th><th id="rOpp">OPP</th></tr></thead>
         <tbody id="resultRows"></tbody>
@@ -78,6 +110,7 @@
 
   <script src="js/characters.js"></script>
   <script src="js/images.js"></script>
+  <script src="js/effects.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@
   const BOT_NAMES = ["SUPERSTARRRR2", "NightRaidr", "xX_Sensei_Xx", "GrandLineGuy", "DomainExpander", "HokageMain", "UltraInstinkt", "PlusUltra99"];
 
   const $ = (id) => document.getElementById(id);
+  const sleepRaw = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ---------- scoring ----------
   const avg = (c) => c.stats.reduce((a, b) => a + b, 0) / c.stats.length;
@@ -29,60 +30,57 @@
       img.src = url;
     });
   }
-  async function findImage(c) {
-    if (c.id in imgCache) return imgCache[c.id];
-    const remote = (window.CHARACTER_IMAGES || {})[c.id];
-    const candidates = [`images/${c.id}.jpg`, `images/${c.id}.png`, `images/${c.id}.webp`, c.image, remote].filter(Boolean);
-    let found = null;
-    for (const url of candidates) {
-      found = await tryLoad(url);
-      if (found) break;
+  function findImage(c) {
+    if (!imgCache[c.id]) {
+      imgCache[c.id] = (async () => {
+        const remote = (window.CHARACTER_IMAGES || {})[c.id];
+        const candidates = [`images/${c.id}.jpg`, `images/${c.id}.png`, `images/${c.id}.webp`, c.image, remote].filter(Boolean);
+        for (const url of candidates) {
+          const found = await tryLoad(url);
+          if (found) return { url: found, real: true };
+        }
+        return { url: placeholder(c), real: false };
+      })();
     }
-    imgCache[c.id] = found ? { url: found, real: true } : { url: placeholder(c), real: false };
     return imgCache[c.id];
   }
   function placeholder(c) {
     const [a, b] = window.SERIES_COLORS[c.series] || ["#666", "#111"];
     const initials = c.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <radialGradient id="g" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>
+        <radialGradient id="g" cx="50%" cy="35%" r="80%"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>
         <linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity=".9"/></linearGradient>
       </defs>
-      <rect width="1600" height="900" fill="url(#g)"/>
-      <g opacity=".18" stroke="#fff" stroke-width="3">${Array.from({ length: 24 }, (_, i) => {
-        const ang = (i / 24) * Math.PI * 2;
-        return `<line x1="800" y1="300" x2="${800 + Math.cos(ang) * 1400}" y2="${300 + Math.sin(ang) * 1400}"/>`;
-      }).join("")}</g>
-      <text x="800" y="420" text-anchor="middle" font-family="Oswald, Arial" font-weight="700" font-size="360" fill="#fff" opacity=".12">${initials}</text>
+      <rect width="600" height="900" fill="url(#g)"/>
+      <text x="300" y="420" text-anchor="middle" font-family="Oswald, Arial" font-weight="700" font-size="300" fill="#fff" opacity=".14">${initials}</text>
       <g fill="url(#s)">
-        <ellipse cx="800" cy="250" rx="120" ry="140"/>
-        <path d="M560 900 C 560 560, 640 430, 800 420 C 960 430, 1040 560, 1040 900 Z"/>
-        <path d="M600 520 C 480 560, 420 700, 400 900 L 560 900 Z"/>
-        <path d="M1000 520 C 1120 560, 1180 700, 1200 900 L 1040 900 Z"/>
+        <ellipse cx="300" cy="330" rx="110" ry="130"/>
+        <path d="M80 900 C 80 620, 160 480, 300 470 C 440 480, 520 620, 520 900 Z"/>
       </g>
     </svg>`;
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
+  const seriesColor = (c) => (window.SERIES_COLORS[c.series] || ["#ffffff"])[0];
+
   let shownId = null;
-  async function showBackground(c) {
+  async function showCard(c) {
     shownId = c.id;
     const img = await findImage(c);
     if (shownId !== c.id) return; // a newer draw replaced this one while loading
-    const bg = $("bg"), portrait = $("portrait");
+    const bg = $("bg"), card = $("portraitCard");
     bg.style.backgroundImage = `url("${img.url}")`;
     bg.classList.toggle("blurred", img.real);
-    if (img.real) {
-      portrait.src = img.url;
-      portrait.classList.remove("hidden");
-      portrait.classList.remove("in");
-      void portrait.offsetWidth;
-      portrait.classList.add("in");
-    } else {
-      portrait.classList.add("hidden");
-    }
+    $("portrait").src = img.url;
+    card.style.setProperty("--card-glow", seriesColor(c));
+    card.classList.remove("hidden", "in");
+    void card.offsetWidth;
+    card.classList.add("in");
+    const fxName = FX.play(c, card);
+    const badge = $("revealFx");
+    badge.textContent = fxName ? `✦ ${fxName} ✦` : "";
+    badge.style.visibility = fxName ? "visible" : "hidden";
   }
-  // Warm the cache so draws appear instantly.
   function preload(list) { list.forEach((c) => findImage(c)); }
 
   // ---------- state ----------
@@ -122,7 +120,10 @@
   }
 
   function show(screen) {
-    ["start", "game", "results"].forEach((s) => $(s).classList.toggle("hidden", s !== screen));
+    ["start", "game", "clash", "results"].forEach((s) => $(s).classList.toggle("hidden", s !== screen));
+    if (screen !== "game") $("portraitCard").classList.add("hidden");
+    if (screen === "start" || screen === "results") FX.stop();
+    window.scrollTo(0, 0);
   }
 
   // ---------- rendering ----------
@@ -170,13 +171,13 @@
     r.classList.remove("pop");
     void r.offsetWidth;
     r.classList.add("pop");
-    showBackground(c);
+    showCard(c);
   }
 
   // ---------- turn flow ----------
   function nextTurn() {
     if (state.turn === "done") return;
-    if (state.pick >= TOTAL_PICKS) return finish();
+    if (state.pick >= TOTAL_PICKS) return finishDraft();
     state.pick++;
     state.current = state.deck.pop();
     state.busy = false;
@@ -185,7 +186,7 @@
     startTimer();
     if (state.turn === "opp") {
       state.busy = true;
-      setTimeout(botPlace, 1400 + Math.random() * 1600);
+      setTimeout(botPlace, 1800 + Math.random() * 1600);
     }
   }
 
@@ -237,30 +238,162 @@
     place("opp", best);
   }
 
+  // ---------- the clash ----------
+  // Skippable sleep: pressing SKIP resolves every pending wait at once.
+  let skipping = false;
+  const pending = new Set();
+  function wait(ms) {
+    if (skipping) return Promise.resolve();
+    return new Promise((res) => {
+      const done = () => { clearTimeout(id); pending.delete(done); res(); };
+      const id = setTimeout(done, ms);
+      pending.add(done);
+    });
+  }
+  function skipClash() {
+    skipping = true;
+    [...pending].forEach((f) => f());
+  }
+
+  function setFighter(el, c, key, img) {
+    el.className = "fcard " + (el.id === "fcYou" ? "left" : "right") + " offstage";
+    el.querySelector("img").src = img.url;
+    el.querySelector(".fname").textContent = c.name;
+    const fx = FX.nameFor(c);
+    el.querySelector(".ffx").textContent = fx ? `✦ ${fx} ✦` : "";
+    el.querySelector(".fnum").textContent = "0";
+    el.style.setProperty("--card-glow", seriesColor(c));
+  }
+
+  function countUp(el, to, ms) {
+    return new Promise((res) => {
+      if (skipping) { el.textContent = to; return res(); }
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / ms);
+        el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
+        if (k < 1 && !skipping) requestAnimationFrame(step);
+        else { el.textContent = to; res(); }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  async function runClash() {
+    skipping = false;
+    show("clash");
+    const bg = $("bg");
+    bg.classList.remove("blurred");
+    bg.style.backgroundImage = "radial-gradient(ellipse at 50% 60%, #2a2f3a 0%, #0b0d12 70%)";
+    $("csYouName").textContent = state.youName;
+    $("csOppName").textContent = state.oppName;
+    $("csYou").textContent = "0";
+    $("csOpp").textContent = "0";
+    $("clashBanner").classList.add("hidden");
+    const fy = $("fcYou"), fo = $("fcOpp");
+    const wins = { you: 0, opp: 0 };
+
+    for (let i = 0; i < CATS.length && !skipping; i++) {
+      const cat = CATS[i];
+      const a = state.you[cat.key], b = state.opp[cat.key];
+      const sa = score(a, cat.key), sb = score(b, cat.key);
+      const [ia, ib] = await Promise.all([findImage(a), findImage(b)]);
+
+      FX.stop();
+      $("clashRound").textContent = `ROUND ${i + 1} / ${CATS.length}`;
+      $("clashCat").textContent = cat.label;
+      $("clashVs").className = "vs";
+      setFighter(fy, a, cat.key, ia);
+      setFighter(fo, b, cat.key, ib);
+      void fy.offsetWidth;
+
+      // Slide in.
+      fy.classList.remove("offstage"); fo.classList.remove("offstage");
+      await wait(550);
+      // Reveal the stats.
+      await Promise.all([countUp(fy.querySelector(".fnum"), sa, 800), countUp(fo.querySelector(".fnum"), sb, 800)]);
+      await wait(250);
+      // Charge and collide.
+      fy.classList.add("charge"); fo.classList.add("charge");
+      await wait(220);
+      const vs = $("clashVs").getBoundingClientRect();
+      if (!skipping) FX.impact(vs.left + vs.width / 2, vs.top + vs.height / 2, sa === sb ? "#ffffff" : sa > sb ? "#7aa7ff" : "#ff4d4d");
+      fy.classList.remove("charge"); fo.classList.remove("charge");
+      $("clashVs").className = "vs hit";
+
+      if (sa === sb) {
+        fy.classList.add("tie"); fo.classList.add("tie");
+      } else {
+        const [w, l, wc] = sa > sb ? [fy, fo, a] : [fo, fy, b];
+        w.classList.add("win"); l.classList.add("lose");
+        wins[sa > sb ? "you" : "opp"]++;
+        if (!skipping) FX.play(wc, w.querySelector(".fimg"));
+      }
+      $("csYou").textContent = wins.you;
+      $("csOpp").textContent = wins.opp;
+      await wait(1900);
+    }
+
+    FX.stop();
+    if (!skipping) {
+      const t = totals();
+      const r = outcome(t);
+      const banner = $("clashBanner");
+      banner.textContent = r === "win" ? "VICTORY" : r === "lose" ? "DEFEAT" : "DRAW";
+      banner.className = "clash-banner " + r;
+      await wait(1600);
+    }
+    finish(false);
+  }
+
+  function totals() {
+    const t = { youWins: 0, oppWins: 0, youPts: 0, oppPts: 0 };
+    CATS.forEach((cat) => {
+      const a = state.you[cat.key], b = state.opp[cat.key];
+      const sa = a ? score(a, cat.key) : 0, sb = b ? score(b, cat.key) : 0;
+      t.youPts += sa; t.oppPts += sb;
+      if (sa > sb) t.youWins++; else if (sb > sa) t.oppWins++;
+    });
+    return t;
+  }
+  // Most clashes won; total stat points break a tie.
+  function outcome(t) {
+    if (t.youWins !== t.oppWins) return t.youWins > t.oppWins ? "win" : "lose";
+    if (t.youPts !== t.oppPts) return t.youPts > t.oppPts ? "win" : "lose";
+    return "draw";
+  }
+
+  function finishDraft() {
+    clearInterval(timerHandle);
+    state.turn = "clash";
+    runClash();
+  }
+
   function finish(forfeited) {
     clearInterval(timerHandle);
-    let youTotal = 0, oppTotal = 0;
     const rows = CATS.map((cat) => {
       const a = state.you[cat.key], b = state.opp[cat.key];
       const sa = a ? score(a, cat.key) : 0;
       const sb = b ? score(b, cat.key) : 0;
-      youTotal += sa; oppTotal += sb;
       return `<tr>
         <td class="${sa > sb ? "won" : ""}">${a ? a.name : "-"}<span class="pts">${sa}</span></td>
         <td>${cat.label}</td>
         <td class="${sb > sa ? "won" : ""}"><span class="pts">${sb}</span>${b ? b.name : "-"}</td>
       </tr>`;
     }).join("");
+    const t = totals();
     $("resultRows").innerHTML = rows;
-    $("youTotal").textContent = youTotal;
-    $("oppTotal").textContent = oppTotal;
+    $("youTotal").textContent = t.youPts;
+    $("oppTotal").textContent = t.oppPts;
     $("rYou").textContent = state.youName;
     $("rOpp").textContent = state.oppName;
-    const t = $("resultTitle");
-    if (forfeited) { t.textContent = "YOU FORFEITED"; t.className = "lose"; }
-    else if (youTotal > oppTotal) { t.textContent = "YOU WIN"; t.className = "win"; }
-    else if (youTotal < oppTotal) { t.textContent = "YOU LOSE"; t.className = "lose"; }
-    else { t.textContent = "DRAW"; t.className = ""; }
+    const title = $("resultTitle");
+    const r = forfeited ? "forfeit" : outcome(t);
+    title.textContent = { win: "YOU WIN", lose: "YOU LOSE", draw: "DRAW", forfeit: "YOU FORFEITED" }[r];
+    title.className = r === "win" ? "win" : r === "draw" ? "" : "lose";
+    $("resultSub").textContent = forfeited
+      ? ""
+      : `Clashes won ${t.youWins} - ${t.oppWins}` + (t.youWins === t.oppWins ? ` · tiebreak on total power ${t.youPts} - ${t.oppPts}` : "");
     state.turn = "done";
     show("results");
   }
@@ -273,10 +406,30 @@
   });
   $("startBtn").addEventListener("click", newGame);
   $("againBtn").addEventListener("click", () => show("start"));
+  $("skipBtn").addEventListener("click", skipClash);
   $("forfeitBtn").addEventListener("click", () => {
-    if (confirm("Forfeit this draft?")) finish(true);
+    if (confirm("Forfeit this draft?")) { state.turn = "done"; finish(true); }
   });
 
   // Start-screen backdrop
-  showBackground(ROSTER[Math.floor(Math.random() * ROSTER.length)]);
+  findImage(ROSTER[Math.floor(Math.random() * ROSTER.length)]).then((img) => {
+    $("bg").style.backgroundImage = `url("${img.url}")`;
+    $("bg").classList.toggle("blurred", img.real);
+  });
+
+  // Debug helper: open index.html#fx=madara to preview a character's draw effect.
+  const m = location.hash.match(/fx=([\w]+)/);
+  if (m) {
+    const c = ROSTER.find((x) => x.id === m[1]);
+    if (c) {
+      $("start").classList.add("hidden");
+      state = { pick: 1, oppName: "BOT", you: {}, opp: {} };
+      $("game").classList.remove("hidden");
+      $("revealWho").textContent = "PREVIEW";
+      $("revealTitle").textContent = c.title;
+      $("revealName").textContent = c.name;
+      $("revealSeries").textContent = c.series;
+      showCard(c);
+    }
+  }
 })();

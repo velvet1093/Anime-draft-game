@@ -1,6 +1,6 @@
 # Anime Draft
 
-A browser draft game. Each turn you draw a random anime character and slot them into one of 8 categories: Strength, Speed, Durability, IQ, Battle IQ, Abilities, Bum and Aura. A bot opponent drafts alongside you. When all 16 picks are made, the higher total wins.
+A browser draft game. Each turn you draw a random anime character and slot them into one of 8 categories: Strength, Speed, Durability, IQ, Battle IQ, Abilities, Bum and Aura. A bot opponent drafts alongside you. When all 16 picks are made, the cards **clash** one-on-one in each category (your Strength card against theirs, and so on). Whoever wins more clashes wins the match. If clashes are tied, total stat points decide it.
 
 ## Play
 
@@ -12,6 +12,16 @@ python3 -m http.server 8000
 ```
 
 Controls: click a slot or press keys **1-8**. You get 15 seconds per pick. If time runs out, your character goes into a random open slot.
+
+## Effects
+
+Every card plays an effect when it appears, and the winner's effect plays again after each clash.
+
+- **Signature effects**: Madara's Sharingan, Itachi's Mangekyō, Gojo's Infinite Void, Sukuna's slashes, Saitama's One Punch, Ayanokoji's White Room, Mob's ???% meter, and about 40 more. They're listed in `SPECIAL` in `js/effects.js`.
+- **General effects** for everyone else, based on their best stat (if it is 80+): IQ shows floating equations, Speed shows speed lines, Strength cracks the ground, Durability adds a hex shield, Battle IQ a targeting HUD, Abilities a magic circle, and Aura flames.
+- **Certified bum**: characters averaging under 40 get rain and floating L's.
+
+To preview one character's effect, open `index.html#fx=madara` (use any character id).
 
 ## Scoring
 

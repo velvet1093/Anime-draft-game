@@ -50,6 +50,11 @@ html, body {
 /* Invisible box the card effects are centred on */
 .hero-anchor { position: fixed; left: 50%; top: 16vh; height: 58vh; aspect-ratio: 2 / 3; transform: translateX(-50%); pointer-events: none; }
 
+body.zawarudo { animation: zawarudo 1.8s ease forwards; }
+@keyframes zawarudo {
+  0% { filter: none; } 8% { filter: invert(1) hue-rotate(180deg); } 45% { filter: invert(1) hue-rotate(180deg); }
+  60% { filter: grayscale(1) sepia(.5); } 85% { filter: grayscale(1) sepia(.5); } 100% { filter: none; }
+}
 body.shake { animation: shake .09s linear infinite; }
 @keyframes shake {
   0% { transform: translate(0, 0); } 25% { transform: translate(var(--shake), calc(var(--shake) * -.6)); }
@@ -78,6 +83,17 @@ body.shake { animation: shake .09s linear infinite; }
 .btn:hover { background: rgba(60, 64, 74, .9); }
 .btn.primary { background: #1d6b3d; border-color: #9effc2; }
 .btn.primary:hover { background: #24864c; }
+
+/* Fullscreen toggle */
+.fs-btn {
+  position: fixed; z-index: 20; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px));
+  width: 40px; height: 40px; display: grid; place-items: center; padding: 0; cursor: pointer;
+  color: #fff; background: var(--panel); border: 2px solid var(--line); border-radius: 8px;
+}
+.fs-btn:hover { background: rgba(60, 64, 74, .9); }
+.fs-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fs-btn .fs-exit, .fs-btn.on .fs-enter { display: none; }
+.fs-btn.on .fs-exit { display: inline; }
 
 /* Start & results cards */
 .start-card, .results-card {
@@ -281,7 +297,7 @@ body.shake { animation: shake .09s linear infinite; }
   .opp .slot { height: 40px; font-size: 14px; }
   .slot { height: 48px; font-size: 17px; }
   .slot .key { display: none; }
-  .status-card { position: static; transform: none; width: 100%; margin-bottom: 12px; }
+  .status-card { position: static; transform: none; width: calc(100% - 52px); align-self: flex-start; margin-bottom: 12px; }
   #game.screen { padding-top: 16px; }
   .forfeit { position: static; align-self: flex-start; }
   .pool { position: static; }
@@ -293,6 +309,7 @@ body.shake { animation: shake .09s linear infinite; }
 @media (max-height: 520px) and (orientation: landscape) {
   #game { grid-template-columns: minmax(150px, 250px) 1fr minmax(120px, 200px); padding: 58px 3vw 6px; gap: 12px; }
   .status-card { top: 6px; padding: 4px 14px 5px; width: min(300px, 40vw); }
+  .fs-btn { top: 6px; right: 8px; width: 32px; height: 32px; }
   .status-card .eyebrow { display: none; }
   .status-title { font-size: 16px; }
   .pick { font-size: 9px; margin: 0 0 3px; }
@@ -335,7 +352,8 @@ body.shake { animation: shake .09s linear infinite; }
   .start-card h1 { font-size: 30px; margin: 2px 0 6px; }
   .start-card p { font-size: 13px; margin: 6px 0; }
   .modes { margin: 8px 0 0; }
-  .mode { padding: 8px 10px; }
+  .mode { padding: 6px 10px; }
+  .mode span, .start-card .small, .start-card .eyebrow { display: none; }
   .field { margin: 8px 0; }
   .results-card { padding: 14px 20px; }
   .results-card h2 { font-size: 30px; margin: 0 0 6px; }

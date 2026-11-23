@@ -45,6 +45,21 @@ WIKIS = {
     "Classroom of the Elite": "you-zitsu.fandom.com",
     "Code Geass": "codegeass.fandom.com",
     "Dr. Stone": "dr-stone.fandom.com",
+    "Umineko When They Cry": "07th-expansion.fandom.com",
+    "That Time I Got Reincarnated as a Slime": "tensura.fandom.com",
+    "Solo Leveling": "solo-leveling.fandom.com",
+    "The Misfit of Demon King Academy": "maou-gakuin.fandom.com",
+    "Overlord": "overlordmaruyama.fandom.com",
+    "The Seven Deadly Sins": "nanatsu-no-taizai.fandom.com",
+    "Fate": "typemoon.fandom.com",
+    "Hellsing": "hellsing.fandom.com",
+    "A Certain Magical Index": "toarumajutsunoindex.fandom.com",
+    "Black Clover": "blackclover.fandom.com",
+    "Chainsaw Man": "chainsaw-man.fandom.com",
+    "Monster": "monster.fandom.com",
+    "Neon Genesis Evangelion": "evangelion.fandom.com",
+    "Sword Art Online": "swordartonline.fandom.com",
+    "JoJo's Bizarre Adventure": "jojo.fandom.com",
 }
 
 

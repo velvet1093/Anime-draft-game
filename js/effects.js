@@ -545,6 +545,71 @@ window.FX = (() => {
     },
   });
 
+  // Golden portals that fire weapons at the card (Gate of Babylon).
+  function gates() {
+    const portals = [];
+    let next = 0;
+    return {
+      draw(g, t, dt, A) {
+        if (t >= next && portals.length < 14) {
+          next = t + rand(0.08, 0.2);
+          portals.push({ x: rand(W * 0.05, W * 0.95), y: rand(H * 0.05, H * 0.55), born: t, r: rand(26, 50) });
+        }
+        g.globalCompositeOperation = "lighter";
+        portals.forEach((p) => {
+          const age = t - p.born, open = easeOut(age / 0.3);
+          for (let i = 0; i < 3; i++) {
+            g.beginPath();
+            g.ellipse(p.x, p.y, p.r * open * (1 - i * 0.25), p.r * open * 0.45 * (1 - i * 0.25), 0, 0, TAU);
+            g.strokeStyle = rgba("#ffd166", 0.85 - i * 0.2); g.lineWidth = 3 - i;
+            g.shadowColor = "#ffb000"; g.shadowBlur = 18; g.stroke();
+          }
+          // a blade launches from the portal toward the card, then a new one reloads
+          const k = ((age - 0.3) % 0.9) / 0.5;
+          if (age > 0.3 && k <= 1) {
+            const tx = A.cx + (p.x - A.cx) * 0.15, ty = A.cy + (p.y - A.cy) * 0.15;
+            const x = p.x + (tx - p.x) * k, y = p.y + (ty - p.y) * k;
+            const a = Math.atan2(ty - p.y, tx - p.x);
+            g.strokeStyle = "rgba(255,240,200,.95)"; g.lineWidth = 3;
+            g.beginPath(); g.moveTo(x, y); g.lineTo(x - Math.cos(a) * 46, y - Math.sin(a) * 46); g.stroke();
+          }
+        });
+        g.shadowBlur = 0;
+      },
+    };
+  }
+
+  // DIO's time stop: the whole page flips to negative, then drains to sepia.
+  function timeStop() {
+    const b = document.body;
+    b.classList.remove("zawarudo");
+    void b.offsetWidth;
+    b.classList.add("zawarudo");
+    clearTimeout(timeStop.t);
+    timeStop.t = setTimeout(() => b.classList.remove("zawarudo"), 1800);
+  }
+  const clockFace = (g, r, t) => {
+    g.strokeStyle = "#ffe066"; g.lineWidth = r * 0.03;
+    circle(g, 0, 0, r); g.stroke();
+    for (let i = 0; i < 12; i++) {
+      const [x1, y1] = polar(r * 0.85, (i * TAU) / 12), [x2, y2] = polar(r * 0.97, (i * TAU) / 12);
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+    }
+    const hand = Math.min(t, 1.2) * 3; // the hand stops when time stops
+    g.lineWidth = r * 0.04;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(...polar(r * 0.8, hand - Math.PI / 2)); g.stroke();
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(...polar(r * 0.5, hand / 12 - Math.PI / 2)); g.stroke();
+  };
+  // Makima's ringed eyes.
+  const rings = (g, r, t) => {
+    for (let i = 6; i >= 1; i--) {
+      circle(g, 0, 0, (r * i) / 6 * (1 + 0.03 * Math.sin(t * 3 + i)));
+      g.fillStyle = i % 2 ? "#ffcc33" : "#b30000";
+      g.fill();
+    }
+    g.fillStyle = "#1a0000"; circle(g, 0, 0, r * 0.12); g.fill();
+  };
+
   // Mob's percentage meter climbing to 100%.
   const meter = () => ({
     layer: "front",
@@ -823,6 +888,114 @@ window.FX = (() => {
     senku: () => ({ name: "TEN BILLION PERCENT", layers: [
       glow("#90be6d", 0.35),
       particles({ layer: "front", spawn: "screen", colors: ["rgba(170,255,140,.85)", "rgba(255,255,255,.8)"], shape: "text", texts: FORMULAS, count: 18, size: [16, 30], speed: [10, 25], life: [2.5, 4], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    // ---- top tiers ----
+    featherine: () => ({ name: "THE AUTHOR", layers: [
+      tint("#14001f", 0.45), glow("#e9c46a", 0.5, 1.3),
+      symbol(magicCircle("#ffd166"), { size: 2.1, spin: 0.15, alpha: 0.55, glowColor: "#ffb000" }),
+      particles({ layer: "front", spawn: "top", colors: ["#ffe8a3", "#ffd166", "#fff6d8"], shape: "feather", count: 26, size: [5, 9], speed: [30, 70], dir: Math.PI / 2, spread: 0.5, spin: 1.5, wobble: 50, life: [3, 5], shrink: false }),
+      particles({ layer: "front", spawn: "screen", colors: ["rgba(255,225,150,.9)"], shape: "text", texts: ["And so it was written.", "Let it be so.", "The tale ends here.", "I am the author.", "Fin."], count: 8, size: [16, 24], speed: [6, 14], life: [3, 5], shrink: false, blend: "source-over", font: "Georgia, serif", fontWeight: 400, textGlow: true }),
+    ] }),
+    rimuru: () => ({ name: "PREDATOR", layers: [
+      glow("#4cc9f0", 0.5, 1.2),
+      symbol(magicCircle("#7fe0ff"), { size: 1.9, spin: 0.3, alpha: 0.6, glowColor: "#4cc9f0" }),
+      particles({ spawn: "ring", ringScale: 0.8, colors: ["#4cc9f0", "#a8e8ff"], count: 70, shape: "flame", size: [5, 10], speed: [40, 90], life: [1, 2] }),
+      particles({ layer: "front", spawn: "card", dir: "out", colors: ["rgba(120,210,255,.7)"], blend: "source-over", count: 18, size: [5, 11], speed: [30, 80], life: [1, 2] }),
+    ] }),
+    jinwoo: () => ({ name: "ARISE", layers: [
+      tint("#05000f", 0.55), glow("#9d4edd", 0.45, 1.2),
+      particles({ spawn: "bottom", colors: ["#9d4edd", "#5a189a", "#c77dff"], shape: "flame", count: 140, size: [10, 22], speed: [80, 180], life: [1.5, 3] }),
+      particles({ colors: ["#c77dff", "#e0aaff"], count: 60, shape: "flame", size: [6, 12], speed: [60, 130], life: [0.7, 1.4] }),
+      bigText("ARISE", { color: "#c77dff", at: 0.35 }),
+    ] }),
+    anos: () => ({ name: "DEMON KING", layers: [
+      tint("#0a0000", 0.5), glow("#e63946", 0.4, 1.3),
+      symbol(magicCircle("#ff3344"), { size: 2.2, spin: -0.2, alpha: 0.6, glowColor: "#ff0022" }),
+      lightning({ colors: ["#ff2a3a", "#000000"], every: [0.1, 0.3], width: 3 }),
+      particles({ colors: ["#ff2a3a", "#300000"], count: 50, shape: "flame", size: [6, 12], speed: [50, 110], life: [0.8, 1.5] }),
+    ] }),
+    zeno: () => ({ name: "ERASE", layers: [
+      flash("#ffffff", 0.9, 1), tint("#ffffff", 0.18),
+      particles({ spawn: "screen", colors: ["#ffffff", "#e0f0ff"], count: 80, size: [1, 3], speed: [10, 40], life: [1, 2] }),
+      bigText("ERASE", { color: "#ffffff", at: 0.5 }),
+    ] }),
+    ainz: () => ({ name: "SORCERER KING", layers: [
+      tint("#0a0014", 0.5), glow("#7b2cbf", 0.45, 1.3),
+      symbol(magicCircle("#b07cff"), { size: 2.2, spin: 0.25, alpha: 0.65, glowColor: "#7b2cbf" }),
+      symbol(magicCircle("#d4b4ff"), { size: 1.3, spin: -0.5, alpha: 0.5 }),
+      particles({ colors: ["#7b2cbf", "#c77dff"], count: 40, size: [1, 3], spawn: "card", speed: [20, 60] }),
+    ] }),
+    alucard: () => ({ name: "RESTRICTION RELEASED", layers: [
+      tint("#0b0000", 0.5), tendrils("#8a0010"), glow("#c1121f", 0.35),
+      particles({ layer: "front", spawn: "screen", colors: ["#050505", "#140000"], blend: "source-over", shape: "feather", count: 28, size: [6, 10], speed: [60, 140], dir: "out", spin: 3, life: [1.5, 3], shrink: false, wobble: 60 }),
+    ] }),
+    dio: () => ({ name: "ZA WARUDO", layers: [
+      at(0.15, timeStop), glow("#ffe066", 0.4, 1.3),
+      symbol(clockFace, { size: 1.9, spin: 0, alpha: 0.6, glowColor: "#ffb000" }),
+      bigText("ZA WARUDO", { color: "#ffe066", at: 0.2, dur: 1.8 }),
+    ] }),
+    makima: () => ({ name: "CONTROL", layers: [
+      tint("#150000", 0.45),
+      symbol(rings, { size: 1.9, spin: 0, alpha: 0.35 }),
+      symbol(rings, { layer: "front", size: 0.5, spin: 0, env: [0.15, 0.9, 1.5] }),
+      glow("#ff2a2a", 0.3),
+    ] }),
+    gilgamesh: () => ({ name: "GATE OF BABYLON", layers: [tint("#0f0a00", 0.35), gates(), glow("#ffd166", 0.4, 1.2)] }),
+    // ---- more fighters ----
+    hashirama: () => ({ name: "WOOD STYLE", layers: [
+      glow("#6a994e", 0.45, 1.2),
+      particles({ spawn: "bottom", colors: ["#6a994e", "#a7c957", "#386641"], blend: "source-over", shape: "feather", count: 40, size: [6, 11], speed: [60, 140], spin: 3, wobble: 60, life: [3, 5], shrink: false }),
+      particles({ colors: ["#a7c957"], count: 40, shape: "flame", size: [6, 12], speed: [50, 110] }),
+    ] }),
+    whitebeard: () => ({ name: "GURA GURA", layers: [
+      flash("#e0f4ff", 0.4, 0.8), cracks({ layer: "front", color: "#bfe6ff", count: 11 }),
+      at(0.05, () => shake(800, 20)), glow("#bfe6ff", 0.4, 1.3),
+      bigText("GURA GURA", { color: "#e0f4ff", at: 0.2 }),
+    ] }),
+    kenpachi: () => ({ name: "UNRESTRAINED", layers: [
+      glow("#ffe14d", 0.5, 1.3),
+      particles({ colors: ["#ffe14d", "#fff3a0", "#d4b000"], count: 110, shape: "flame", size: [9, 20], speed: [70, 150], life: [0.7, 1.4] }),
+      at(0.05, () => shake(500, 10)),
+    ] }),
+    escanor: () => ({ name: "THE ONE", layers: [
+      glow("#ffb000", 0.75, 2.2), tint("#2a1200", 0.2),
+      particles({ spawn: "screen", colors: ["#ffb000", "#ff7b00", "#ffe066"], shape: "flame", count: 90, size: [6, 14], speed: [20, 60], life: [1.5, 3] }),
+      bigText("THE ONE", { color: "#ffd166" }),
+    ] }),
+    accelerator: () => ({ name: "VECTOR CONTROL", layers: [
+      glow("#e0e1dd", 0.35),
+      particles({ spawn: "card", dir: "out", colors: ["#ffffff", "#c8d6ff"], shape: "line", count: 90, size: [1.5, 3], speed: [300, 700], life: [0.3, 0.6] }),
+      symbol(hud("#e0e1dd"), { size: 1.6, spin: 0, alpha: 0.5 }),
+    ] }),
+    hisoka: () => ({ name: "BUNGEE GUM", layers: [
+      glow("#ff5fa2", 0.4),
+      particles({ layer: "front", spawn: "screen", colors: ["rgba(255,120,190,.9)", "rgba(255,255,255,.85)"], shape: "text", texts: ["♠", "♥", "♦", "♣", "★", "♡"], count: 24, size: [22, 44], speed: [10, 30], spin: 2, life: [2.5, 4], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    kokushibo: () => ({ name: "MOON BREATHING", layers: [
+      tint("#0a0014", 0.45), glow("#b14dff", 0.4),
+      slashes({ color: "#c77dff", every: [0.1, 0.25], width: 12 }),
+      particles({ layer: "front", spawn: "screen", colors: ["rgba(220,190,255,.9)"], shape: "text", texts: ["☾", "☽"], count: 20, size: [14, 30], speed: [20, 60], life: [1, 2], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    yuta: () => ({ name: "RIKA", layers: [tint("#000000", 0.4), tendrils("#d8d8e0"), glow("#ffffff", 0.3)] }),
+    asta: () => ({ name: "ANTI-MAGIC", layers: [
+      tint("#000000", 0.35),
+      particles({ colors: ["#0a0a0a", "#1b1b1b", "#2b2b2b"], blend: "source-over", count: 90, shape: "flame", size: [10, 22], speed: [60, 140], life: [0.7, 1.4] }),
+      lightning({ colors: ["#6a994e", "#ffffff"], every: [0.15, 0.4], width: 2.5 }),
+    ] }),
+    denji: () => ({ name: "CHAINSAW", layers: [
+      slashes({ color: "#ff6b35", every: [0.08, 0.2], width: 9 }), at(0.05, () => shake(500, 9)),
+      particles({ spawn: "card", dir: "out", colors: ["#ffb000", "#ff6b35"], shape: "line", count: 80, size: [1.5, 3], speed: [300, 700], life: [0.2, 0.5] }),
+    ] }),
+    // ---- slander specials ----
+    kirito: () => ({ name: "STARBURST STREAM", layers: [
+      slashes({ color: "#4361ee", every: [0.05, 0.12], width: 8 }),
+      slashes({ color: "#ffffff", every: [0.08, 0.18], width: 6 }),
+      bigText("STARBURST STREAM", { color: "#9fb4ff", size: 0.12 }),
+    ] }),
+    shinji: () => ({ name: "GET IN THE ROBOT", layers: [
+      tint("#1a1f28", 0.45),
+      particles({ layer: "front", spawn: "top", colors: ["rgba(170,190,220,.6)"], shape: "drop", count: 140, size: [1, 2], speed: [700, 1000], dir: Math.PI / 2 + 0.12, spread: 0.02, life: [1, 1.4], shrink: false, blend: "source-over" }),
+      bigText("GET IN THE ROBOT", { color: "#b388ff", size: 0.12 }),
     ] }),
     mrsatan: () => ({ name: "THE PEOPLE'S CHAMP", layers: [
       particles({ layer: "front", spawn: "top", blend: "source-over", shape: "confetti", colors: ["#ff4d4d", "#ffd166", "#3ddc84", "#7aa7ff", "#ffffff"], count: 90, size: [8, 14], speed: [80, 160], dir: Math.PI / 2, gravity: 40, spin: 4, wobble: 50, life: [2.5, 4], shrink: false }),

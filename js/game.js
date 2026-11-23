@@ -483,6 +483,33 @@
     show("results");
   }
 
+  // ---------- fullscreen ----------
+  const fsBtn = $("fsBtn");
+  const root = document.documentElement;
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const canFullscreen = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && !!(root.requestFullscreen || root.webkitRequestFullscreen);
+  if (!canFullscreen) fsBtn.hidden = true; // e.g. iPhone Safari, which has no fullscreen for pages
+  fsBtn.addEventListener("click", async () => {
+    try {
+      if (fsElement()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else {
+        await (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+        // On phones, also try to lock sideways; ignored where it isn't supported.
+        if (screen.orientation && screen.orientation.lock && matchMedia("(pointer: coarse)").matches) screen.orientation.lock("landscape").catch(() => {});
+      }
+    } catch (e) {
+      fsBtn.hidden = true; // fullscreen was refused here, so stop offering it
+    }
+  });
+  const syncFs = () => {
+    const on = !!fsElement();
+    fsBtn.classList.toggle("on", on);
+    fsBtn.setAttribute("aria-label", on ? "Exit fullscreen" : "Enter fullscreen");
+    fsBtn.title = on ? "Exit fullscreen" : "Fullscreen";
+  };
+  document.addEventListener("fullscreenchange", syncFs);
+  document.addEventListener("webkitfullscreenchange", syncFs);
+
   // ---------- input ----------
   document.addEventListener("keydown", (e) => {
     if ($("game").classList.contains("hidden")) return;

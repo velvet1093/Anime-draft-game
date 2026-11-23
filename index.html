@@ -85,7 +85,6 @@
       <div class="eyebrow gold">THE CLASH</div>
       <div class="clash-round" id="clashRound">ROUND 1 / 8</div>
       <div class="clash-cat" id="clashCat">STRENGTH</div>
-      <div class="clash-score" aria-label="Total power"><span id="csYouName">YOU</span><b id="csYou">0</b><i>TOTAL POWER</i><b id="csOpp">0</b><span id="csOppName">OPP</span></div>
     </div>
     <div class="arena">
       <div class="fcard left" id="fcYou">
@@ -102,7 +101,15 @@
         <div class="fnum">0</div>
       </div>
     </div>
-    <div class="clash-banner hidden" id="clashBanner"></div>
+    <div class="clash-final hidden" id="clashFinal">
+      <div class="fin-label">TOTAL POWER</div>
+      <div class="fin-row">
+        <div class="fin-side you"><span id="finYouName">YOU</span><b id="finYou">0</b></div>
+        <i>VS</i>
+        <div class="fin-side opp"><span id="finOppName">OPP</span><b id="finOpp">0</b></div>
+      </div>
+      <div class="fin-result" id="finResult"></div>
+    </div>
     <button id="skipBtn" class="btn skip">SKIP &#9656;&#9656;</button>
   </section>
 

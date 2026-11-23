@@ -369,13 +369,9 @@
     const bg = $("bg");
     bg.classList.remove("blurred");
     bg.style.backgroundImage = "radial-gradient(ellipse at 50% 60%, #2a2f3a 0%, #0b0d12 70%)";
-    $("csYouName").textContent = state.youName;
-    $("csOppName").textContent = state.oppName;
-    $("csYou").textContent = "0";
-    $("csOpp").textContent = "0";
-    $("clashBanner").classList.add("hidden");
+    $("clashFinal").classList.add("hidden");
+    $("clash").classList.remove("final");
     const fy = $("fcYou"), fo = $("fcOpp");
-    const power = { you: 0, opp: 0 };
 
     for (let i = 0; i < CATS.length && !skipping; i++) {
       const cat = CATS[i];
@@ -412,23 +408,29 @@
         w.classList.add("win"); l.classList.add("lose");
         if (!skipping) FX.play(wc, w.querySelector(".fimg"));
       }
-      power.you += sa; power.opp += sb;
-      const lead = power.you === power.opp ? "" : power.you > power.opp ? "you" : "opp";
-      countUp($("csYou"), power.you, 600);
-      countUp($("csOpp"), power.opp, 600);
-      $("csYou").className = lead === "you" ? "lead" : "";
-      $("csOpp").className = lead === "opp" ? "lead" : "";
       await wait(1900);
     }
 
     FX.stop();
     if (!skipping) {
+      // The totals stay secret until every clash is done, then both sums count up together.
       const t = totals();
       const r = outcome(t);
-      const banner = $("clashBanner");
-      banner.textContent = r === "win" ? "VICTORY" : r === "lose" ? "DEFEAT" : "DRAW";
-      banner.className = "clash-banner " + r;
-      await wait(1600);
+      const fin = $("clashFinal");
+      $("clash").classList.add("final");
+      $("finYouName").textContent = state.youName;
+      $("finOppName").textContent = state.oppName;
+      $("finYou").textContent = "0"; $("finOpp").textContent = "0";
+      $("finYou").className = ""; $("finOpp").className = "";
+      $("finResult").textContent = ""; $("finResult").className = "fin-result";
+      fin.classList.remove("hidden");
+      await wait(500);
+      await Promise.all([countUp($("finYou"), t.youPts, 2200), countUp($("finOpp"), t.oppPts, 2200)]);
+      if (r !== "draw") $(r === "win" ? "finYou" : "finOpp").className = "lead";
+      $("finResult").textContent = r === "win" ? "VICTORY" : r === "lose" ? "DEFEAT" : "DRAW";
+      $("finResult").className = "fin-result " + r;
+      FX.shake(450, 12);
+      await wait(2200);
     }
     finish(false);
   }

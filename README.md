@@ -8,6 +8,16 @@ Online (private claude.ai link): https://claude.ai/artifact/438QPKjzTf2TK6aHy89n
 
 ### Game modes
 
+Pick a **mode** and a **draft style** on the start screen.
+
+Modes:
+- **Battle**: everyone, rated on power stats (Strength, Speed, Durability, IQ, Battle IQ, Abilities, Bum, Aura).
+- **Only Girls**: the same battle with a girls-only roster.
+- **Beauty Contest**: rated on looks instead, with a Girls / Boys / All roster. Categories: Face, Eyes, Hair,
+  Physique, Drip (outfit and style), Personality, Charm, and Red Flags (the more toxic, the more they score there).
+  Ratings live in `js/looks.js`, along with the list of girls used by the girls-only rosters.
+
+Draft styles:
 - **Standard**: each turn you draw a random character and choose their slot.
 - **Pool Draft**: 30 random characters are laid out. You and the bot take turns picking one, then choose their slot.
 

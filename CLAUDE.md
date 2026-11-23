@@ -15,3 +15,4 @@ Play the game: https://claude.ai/artifact/438QPKjzTf2TK6aHy89nTK
      (read it first from a new conversation) and every file in dist/images as `files` (`images/<name>` -> `dist/images/<name>`).
 - Character images are never committed (the repo is public). The images/ and dist/ folders are git-ignored.
 - Stats stay hidden from the player until the clash phase. Don't show ratings during the draft.
+- Every character needs battle stats in js/characters.js AND looks in js/looks.js (girls also go in GENDER.f there).

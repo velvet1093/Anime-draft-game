@@ -27,10 +27,25 @@
     <div class="start-card">
       <div class="eyebrow">THE DRAFT</div>
       <h1>ANIME DRAFT</h1>
-      <p>Put each character in the category where they're <b>strongest</b>. Fill all 8 slots, then your cards
-        <b>clash</b> one-on-one against your opponent's. The highest <b>total power</b> wins the match.</p>
+      <p>Put each character in the category where they're <b>best</b>. Fill all 8 slots, then your cards
+        go head-to-head with your opponent's. The highest <b>total</b> wins the match.</p>
       <p class="small">Stats (1-100) stay hidden until the clash. <b>BUM</b> is its own rating: pure garbage (Mineta) and slandered "potential men" (Megumi) both score big there.</p>
-      <div class="modes" role="radiogroup" aria-label="Game mode">
+      <div class="field-label" id="modeLabel">MODE</div>
+      <div class="modes three" role="radiogroup" aria-labelledby="modeLabel">
+        <label class="mode"><input type="radio" name="contest" id="contestBattle" value="battle" checked />
+          <b>BATTLE</b><span>Everyone fights on power stats.</span></label>
+        <label class="mode"><input type="radio" name="contest" id="contestGirls" value="girls" />
+          <b>ONLY GIRLS</b><span>The same battle with a girls-only roster.</span></label>
+        <label class="mode"><input type="radio" name="contest" id="contestBeauty" value="beauty" />
+          <b>BEAUTY CONTEST</b><span>Face, eyes, hair, drip, charm... looks decide it.</span></label>
+      </div>
+      <div class="seg" id="contestants" role="radiogroup" aria-label="Contestants" hidden>
+        <label><input type="radio" name="contestants" id="contestantsGirls" value="girls" checked /><span>GIRLS</span></label>
+        <label><input type="radio" name="contestants" id="contestantsBoys" value="boys" /><span>BOYS</span></label>
+        <label><input type="radio" name="contestants" id="contestantsAll" value="all" /><span>ALL</span></label>
+      </div>
+      <div class="field-label" id="draftLabel">DRAFT</div>
+      <div class="modes" role="radiogroup" aria-labelledby="draftLabel">
         <label class="mode"><input type="radio" name="mode" id="modeStandard" value="standard" checked />
           <b>STANDARD</b><span>Each turn you draw a random character and choose their slot.</span></label>
         <label class="mode"><input type="radio" name="mode" id="modePool" value="pool" />
@@ -66,7 +81,7 @@
         <div class="reveal-name" id="revealName"></div>
         <div class="reveal-series" id="revealSeries"></div>
         <div class="reveal-q" id="revealQ"></div>
-        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - the highest total wins<span class="keys"> / keys 1 - 8</span></div>
+        <div class="reveal-help" id="revealHelp"><span id="revealHelpText">Put them where they're STRONGEST - the highest total wins</span><span class="keys"> / keys 1 - 8</span></div>
       </div>
     </div>
 
@@ -82,7 +97,7 @@
   <!-- Clash -->
   <section id="clash" class="screen hidden">
     <div class="clash-top">
-      <div class="eyebrow gold">THE CLASH</div>
+      <div class="eyebrow gold" id="clashEyebrow">THE CLASH</div>
       <div class="clash-round" id="clashRound">ROUND 1 / 8</div>
       <div class="clash-cat" id="clashCat">STRENGTH</div>
     </div>
@@ -102,7 +117,7 @@
       </div>
     </div>
     <div class="clash-final hidden" id="clashFinal">
-      <div class="fin-label">TOTAL POWER</div>
+      <div class="fin-label" id="finLabel">TOTAL POWER</div>
       <div class="fin-row">
         <div class="fin-side you"><span id="finYouName">YOU</span><b id="finYou">0</b></div>
         <i>VS</i>
@@ -129,6 +144,7 @@
   </section>
 
   <script src="js/characters.js"></script>
+  <script src="js/looks.js"></script>
   <script src="js/images.js"></script>
   <script src="js/effects.js"></script>
   <script src="js/game.js"></script>

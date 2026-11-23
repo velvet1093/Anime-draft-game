@@ -997,6 +997,84 @@ window.FX = (() => {
       particles({ layer: "front", spawn: "top", colors: ["rgba(170,190,220,.6)"], shape: "drop", count: 140, size: [1, 2], speed: [700, 1000], dir: Math.PI / 2 + 0.12, spread: 0.02, life: [1, 1.4], shrink: false, blend: "source-over" }),
       bigText("GET IN THE ROBOT", { color: "#b388ff", size: 0.12 }),
     ] }),
+    // ---- girls ----
+    zerotwo: () => ({ name: "DARLING", layers: [
+      glow("#ff4d8d", 0.5, 1.2),
+      particles({ layer: "front", spawn: "screen", colors: ["#ff4d8d", "#ff8fb8", "#ffffff"], shape: "text", texts: ["❤", "♥", "❥"], count: 26, size: [18, 40], speed: [20, 50], life: [2, 3.5], shrink: false, blend: "source-over", textGlow: true }),
+      particles({ colors: ["#ff4d8d", "#ff8fb8"], count: 60, shape: "flame", size: [6, 12], speed: [50, 110] }),
+    ] }),
+    yor: () => ({ name: "THORN PRINCESS", layers: [
+      tint("#14000a", 0.35), glow("#c9184a", 0.4),
+      particles({ layer: "front", spawn: "top", colors: ["#c9184a", "#ff4d6d", "#800f2f"], shape: "text", texts: ["✿", "❀"], count: 26, size: [16, 30], speed: [40, 90], dir: Math.PI / 2, spread: 0.5, spin: 2, wobble: 50, life: [3, 5], shrink: false, blend: "source-over" }),
+      slashes({ color: "#ffd166", every: [0.35, 0.8], width: 6 }),
+    ] }),
+    esdeath: () => ({ name: "MAHAPADMA", layers: [
+      flash("#e0f4ff", 0.6, 0.85), tint("#021626", 0.45), glow("#8ecae6", 0.5, 1.3),
+      particles({ layer: "front", spawn: "center", dir: "out", burst: 30, count: 10, colors: ["rgba(200,235,255,.7)", "rgba(160,215,255,.6)"], blend: "source-over", shape: "shard", size: [14, 30], speed: [100, 300], spin: 2, life: [1.5, 2.5], shrink: false }),
+      particles({ layer: "front", spawn: "top", colors: ["#ffffff", "#cfefff"], count: 60, size: [1.5, 3.5], speed: [30, 80], dir: Math.PI / 2, spread: 0.4, wobble: 30, life: [3, 5], shrink: false }),
+    ] }),
+    frieren: () => ({ name: "ZOLTRAAK", layers: [
+      tint("#02100f", 0.35), glow("#b8f2e6", 0.45, 1.2),
+      symbol(magicCircle("#b8f2e6"), { size: 2, spin: 0.2, alpha: 0.6, glowColor: "#7ae0c8" }),
+      particles({ spawn: "card", dir: "out", colors: ["#ffffff", "#b8f2e6"], shape: "line", count: 50, size: [1.5, 3], speed: [400, 800], life: [0.25, 0.5] }),
+    ] }),
+    saber: () => ({ name: "EXCALIBUR", layers: [
+      glow("#ffd166", 0.7, 1.6), speedLines({ color: "#ffe9a8", count: 70, alpha: 0.35 }),
+      particles({ spawn: "bottom", colors: ["#ffe066", "#fff3c4"], count: 80, shape: "flame", size: [6, 14], speed: [200, 400], life: [1, 2] }),
+      bigText("EXCALIBUR", { color: "#ffe066", at: 0.3 }),
+    ] }),
+    hancock: () => ({ name: "MERO MERO MELLOW", layers: [
+      glow("#ff5fa2", 0.55, 1.3), speedLines({ color: "#ff8fc0", count: 50, alpha: 0.25 }),
+      particles({ layer: "front", spawn: "card", dir: "out", colors: ["#ff5fa2", "#ffc2dc"], shape: "text", texts: ["❤", "♥"], count: 40, size: [16, 34], speed: [120, 260], life: [1, 1.8], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    toga: () => ({ name: "TRANSFORM", layers: [tint("#1a0006", 0.4), tendrils("#d00045"), glow("#ff5c8a", 0.35)] }),
+    nezuko: () => ({ name: "EXPLODING BLOOD", layers: [
+      glow("#ff5c8a", 0.55, 1.2),
+      particles({ colors: ["#ff5c8a", "#ff99b3", "#ff2a6d"], count: 110, shape: "flame", size: [8, 18], speed: [70, 150], life: [0.7, 1.4] }),
+    ] }),
+    shinobu: () => ({ name: "BUTTERFLY DANCE", layers: [
+      glow("#b388ff", 0.45),
+      particles({ layer: "front", spawn: "screen", colors: ["#c8a2ff", "#9d4edd", "#e0c3ff"], shape: "feather", count: 30, size: [6, 10], speed: [30, 70], spin: 6, wobble: 80, life: [2.5, 4], shrink: false }),
+      slashes({ color: "#c8a2ff", every: [0.4, 0.9], width: 5 }),
+    ] }),
+    misaka: () => ({ name: "RAILGUN", layers: [
+      flash("#ffe8a3", 0.35, 0.8), glow("#ffb000", 0.45),
+      lightning({ colors: ["#ffb000", "#8fd3ff"], every: [0.05, 0.15], width: 3 }),
+      speedLines({ mode: "horizontal", color: "#ffd166", count: 30, alpha: 0.35 }),
+    ] }),
+    erza: () => ({ name: "REQUIP", layers: [
+      glow("#e63946", 0.4), slashes({ color: "#dfe7ff", every: [0.12, 0.3], width: 8 }),
+      particles({ colors: ["#ffffff", "#ffd166"], count: 40, size: [1, 3], spawn: "card", speed: [30, 90] }),
+    ] }),
+    nami: () => ({ name: "THUNDERBOLT TEMPO", layers: [
+      tint("#0a0f1a", 0.35), lightning({ sky: true, colors: ["#ffe066", "#8fd3ff"], every: [0.2, 0.6], width: 5 }),
+      particles({ colors: ["rgba(200,210,230,.35)"], blend: "source-over", count: 30, size: [20, 40], speed: [10, 30], spawn: "top", dir: 0, spread: 0.2, life: [3, 5] }),
+    ] }),
+    mitsuri: () => ({ name: "LOVE BREATHING", layers: [
+      glow("#ff8fc0", 0.5, 1.2), slashes({ color: "#ff8fc0", every: [0.15, 0.35], width: 7 }),
+      particles({ layer: "front", spawn: "screen", colors: ["#ff8fc0", "#a7f3a7"], shape: "text", texts: ["❤", "♥"], count: 20, size: [16, 30], speed: [20, 50], life: [2, 3], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    albedo: () => ({ name: "OVERSEER", layers: [
+      tint("#05000a", 0.45), glow("#7b2cbf", 0.35),
+      particles({ layer: "front", spawn: "top", colors: ["#050505", "#140a1e"], blend: "source-over", shape: "feather", count: 30, size: [7, 12], speed: [40, 90], dir: Math.PI / 2, spread: 0.5, spin: 2, wobble: 60, life: [3, 5], shrink: false }),
+    ] }),
+    rukia: () => ({ name: "SODE NO SHIRAYUKI", layers: [
+      tint("#06101c", 0.35), glow("#e0f4ff", 0.45, 1.2),
+      particles({ layer: "front", spawn: "top", colors: ["#ffffff", "#dff3ff"], count: 90, size: [1.5, 4], speed: [30, 70], dir: Math.PI / 2, spread: 0.4, wobble: 30, life: [3, 6], shrink: false }),
+      symbol(hexShield("#cfefff"), { size: 1.7, spin: 0.05, alpha: 0.5 }),
+    ] }),
+    yoruichi: () => ({ name: "SHUNKO", layers: [
+      glow("#e0e7ff", 0.45), lightning({ colors: ["#ffffff", "#c8d6ff"], every: [0.04, 0.12], width: 2.5 }),
+      speedLines({ mode: "horizontal", color: "#ffffff", count: 30, alpha: 0.3 }),
+    ] }),
+    power: () => ({ name: "BLOOD FIEND", layers: [
+      tint("#1a0000", 0.35), tendrils("#c1121f"),
+      bigText("POWER IS #1", { color: "#ff4d4d", size: 0.14 }),
+    ] }),
+    marin: () => ({ name: "COSPLAY QUEEN", layers: [
+      glow("#ff8fab", 0.45),
+      particles({ layer: "front", spawn: "screen", colors: ["#ffd1dc", "#ffffff", "#ffe066"], shape: "text", texts: ["✦", "✧", "★"], count: 30, size: [14, 28], speed: [10, 30], life: [1.5, 2.5], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
     mrsatan: () => ({ name: "THE PEOPLE'S CHAMP", layers: [
       particles({ layer: "front", spawn: "top", blend: "source-over", shape: "confetti", colors: ["#ff4d4d", "#ffd166", "#3ddc84", "#7aa7ff", "#ffffff"], count: 90, size: [8, 14], speed: [80, 160], dir: Math.PI / 2, gravity: 40, spin: 4, wobble: 50, life: [2.5, 4], shrink: false }),
       bigText("CHAMP!", { color: "#ffd166" }),
@@ -1037,8 +1115,33 @@ window.FX = (() => {
   function seriesColor(c) { return (window.SERIES_COLORS[c.series] || ["#ffffff"])[0]; }
 
   const STAT_KEYS = ["str", "spd", "dur", "iq", "biq", "abl", "aura"];
+  // Beauty Contest general effects, picked from a character's best look.
+  const sparkles = (colors, n = 26) => particles({ layer: "front", spawn: "screen", colors, shape: "text", texts: ["✦", "✧", "✦"], count: n, size: [12, 26], speed: [8, 24], life: [1.2, 2.4], shrink: false, blend: "source-over", textGlow: true });
+  const hearts = (colors, n = 22) => particles({ layer: "front", spawn: "screen", colors, shape: "text", texts: ["❤", "♥"], count: n, size: [16, 32], speed: [20, 50], life: [2, 3.5], shrink: false, blend: "source-over", textGlow: true });
+  const BEAUTY = {
+    face: (c) => ({ name: "STUNNING", layers: [glow("#ffd1dc", 0.45, 1.2), sparkles(["#ffffff", "#ffe8a3", "#ffd1dc"])] }),
+    eyes: (c) => ({ name: "EYE CONTACT", layers: [glow("#a8d8ff", 0.4), flash("#ffffff", 0.3, 0.35), sparkles(["#a8d8ff", "#ffffff"], 18)] }),
+    hair: (c) => ({ name: "HAIR FLIP", layers: [glow(seriesColor(c), 0.4), speedLines({ mode: "horizontal", color: "#ffffff", count: 26, alpha: 0.22 }), sparkles(["#ffffff"], 12)] }),
+    phys: (c) => ({ name: "BUILT DIFFERENT", layers: [glow("#ffb347", 0.45, 1.2), particles({ colors: ["#ffb347", "#ffe066"], count: 70, shape: "flame", size: [6, 13], speed: [50, 110] })] }),
+    drip: (c) => ({ name: "DRIP CHECK", layers: [glow("#7fe0ff", 0.4), particles({ layer: "front", spawn: "top", colors: ["rgba(127,224,255,.8)", "rgba(255,255,255,.8)"], shape: "drop", count: 40, size: [2, 3], speed: [200, 380], dir: Math.PI / 2, spread: 0.05, life: [1.5, 2.5], shrink: false, blend: "source-over" }), sparkles(["#ffffff", "#7fe0ff"], 14)] }),
+    pers: (c) => ({ name: "HEART OF GOLD", layers: [glow("#ffd166", 0.4), hearts(["#ffd166", "#ff8fab"])] }),
+    charm: (c) => ({ name: "RIZZ", layers: [glow("#ff5fa2", 0.5, 1.2), hearts(["#ff5fa2", "#ffc2dc", "#ffffff"], 28)] }),
+    red: (c) => ({ name: "RED FLAG", layers: [
+      tint("#1a0000", 0.4), glow("#ff2a2a", 0.35),
+      particles({ layer: "front", spawn: "top", colors: ["#ff2a2a"], shape: "text", texts: ["🚩"], count: 22, size: [22, 38], speed: [50, 110], dir: Math.PI / 2, spread: 0.3, spin: 1.5, wobble: 40, life: [3, 5], shrink: false, blend: "source-over" }),
+    ] }),
+  };
+  const LOOK_KEYS = ["face", "eyes", "hair", "phys", "drip", "pers", "charm"];
+  let mode = "battle";
+
   function effectFor(c) {
     if (SPECIAL[c.id]) return SPECIAL[c.id]();
+    const looks = window.LOOKS && window.LOOKS[c.id];
+    if (mode === "beauty" && looks) {
+      if (looks[7] >= 90) return BEAUTY.red(c);
+      const main = looks.slice(0, 7);
+      return BEAUTY[LOOK_KEYS[main.indexOf(Math.max(...main))]](c);
+    }
     if (c.stats[7] >= 85) return GENERAL.bum(c);
     const main = c.stats.slice(0, 7);
     const top = main.indexOf(Math.max(...main));
@@ -1060,6 +1163,8 @@ window.FX = (() => {
     },
     // Just the name, without playing.
     nameFor(c) { return effectFor(c).name; },
+    // "battle" or "beauty": which general effects characters without a signature one get.
+    setMode(m) { mode = m; },
     stop() { main = []; },
     // A one-off clash impact at a screen point.
     impact(x, y, color = "#ffd166") {

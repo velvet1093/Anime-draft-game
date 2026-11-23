@@ -60,6 +60,13 @@ WIKIS = {
     "Neon Genesis Evangelion": "evangelion.fandom.com",
     "Sword Art Online": "swordartonline.fandom.com",
     "JoJo's Bizarre Adventure": "jojo.fandom.com",
+    "Fairy Tail": "fairytail.fandom.com",
+    "Darling in the Franxx": "darling-in-the-franxx.fandom.com",
+    "My Dress-Up Darling": "sono-bisque-doll-wa-koi-wo-suru.fandom.com",
+    "Spy x Family": "spy-x-family.fandom.com",
+    "Re:Zero": "rezero.fandom.com",
+    "Akame ga Kill!": "akamegakill.fandom.com",
+    "Frieren": "frieren.fandom.com",
 }
 
 

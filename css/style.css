@@ -114,6 +114,18 @@ body.shake { animation: shake .09s linear infinite; }
 .mode b { font-size: 18px; letter-spacing: .04em; }
 .mode span { font-family: Arial, sans-serif; font-size: 12px; color: #ccc; line-height: 1.4; }
 .mode:has(input:checked) { border-color: var(--gold); background: rgba(255,209,102,.12); }
+.modes.three { grid-template-columns: repeat(3, 1fr); }
+.field-label { margin: 16px 0 -8px; font-size: 12px; letter-spacing: .14em; color: var(--muted); text-align: left; }
+.seg { display: inline-flex; margin-top: 10px; border: 2px solid rgba(255,255,255,.35); border-radius: 999px; overflow: hidden; }
+.seg label { cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 6px 18px; font-size: 14px; letter-spacing: .08em; }
+.seg label + label span { border-left: 1px solid rgba(255,255,255,.25); }
+.seg label:has(input:checked) span { background: rgba(255,143,171,.25); color: #ffd1dc; }
+.seg label:has(input:focus-visible) span { outline: 2px solid #fff; outline-offset: -2px; }
+.seg[hidden] { display: none; }
+body.beauty .status-card .eyebrow, body.beauty #clashEyebrow { color: #ff8fab; }
+body.beauty .clash-cat { color: #ffb3c7; text-shadow: 0 0 18px rgba(255,143,171,.55); }
 .mode:has(input:focus-visible) { outline: 2px solid #fff; outline-offset: 2px; }
 .field input {
   margin-left: 8px; font-family: inherit; font-size: 16px; padding: 6px 10px;
@@ -322,7 +334,13 @@ body.shake { animation: shake .09s linear infinite; }
   .forfeit { position: static; align-self: flex-start; }
   .pool { position: static; }
   .pool-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-  .modes { grid-template-columns: 1fr; }
+  .modes { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modes.three { grid-template-columns: repeat(3, 1fr); }
+  .mode { padding: 10px 8px; align-items: center; text-align: center; justify-content: center; }
+  .mode b { font-size: 15px; line-height: 1.15; }
+  .mode span, .start-card .small { display: none; }
+  .start-card { padding: 20px 16px; }
+  .start-card h1 { font-size: 38px; }
 }
 
 /* Phones held sideways and other short screens: keep the side-by-side layout, just tighter */
@@ -376,7 +394,12 @@ body.shake { animation: shake .09s linear infinite; }
   .start-card p { font-size: 13px; margin: 6px 0; }
   .modes { margin: 8px 0 0; }
   .mode { padding: 6px 10px; }
-  .mode span, .start-card .small, .start-card .eyebrow { display: none; }
+  .mode span, .start-card .small, .start-card .eyebrow, .start-card p { display: none; }
+  .mode { align-items: center; justify-content: center; }
+  .mode b { font-size: 14px; }
+  .field-label { margin: 8px 0 -4px; font-size: 10px; }
+  .seg { margin-top: 6px; }
+  .seg span { padding: 3px 14px; font-size: 12px; }
   .field { margin: 8px 0; }
   .results-card { padding: 14px 20px; }
   .results-card h2 { font-size: 30px; margin: 0 0 6px; }

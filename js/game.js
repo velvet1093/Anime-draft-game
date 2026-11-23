@@ -1,7 +1,9 @@
 (() => {
-  const CATS = window.CATEGORIES;
+  let CATS = window.CATEGORIES; // swapped for BEAUTY_CATEGORIES in a beauty contest
   const ROSTER = window.CHARACTERS;
   const STAT_INDEX = { str: 0, spd: 1, dur: 2, iq: 3, biq: 4, abl: 5, aura: 6, bum: 7 };
+  const LOOK_INDEX = { face: 0, eyes: 1, hair: 2, phys: 3, drip: 4, pers: 5, charm: 6, red: 7 };
+  let contest = "battle"; // "battle" or "beauty"
   const TURN_SECONDS = 15;
   const TOTAL_PICKS = CATS.length * 2;
   const POOL_SIZE = 30;
@@ -11,11 +13,25 @@
   const sleepRaw = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ---------- scoring ----------
-  const score = (c, key) => c.stats[STAT_INDEX[key]];
-  const rosterMean = {};
-  CATS.forEach((cat) => {
-    rosterMean[cat.key] = ROSTER.reduce((s, c) => s + score(c, cat.key), 0) / ROSTER.length;
-  });
+  const score = (c, key) => (contest === "beauty" ? window.LOOKS[c.id][LOOK_INDEX[key]] : c.stats[STAT_INDEX[key]]);
+  // Average rating per category across the roster in play; the bot uses it to judge a pick.
+  let rosterMean = {};
+  function computeMeans(list) {
+    rosterMean = {};
+    CATS.forEach((cat) => {
+      rosterMean[cat.key] = list.reduce((s, c) => s + score(c, cat.key), 0) / list.length;
+    });
+  }
+  const genderOf = (c) => (window.GENDER.f.includes(c.id) ? "f" : window.GENDER.x.includes(c.id) ? "x" : "m");
+
+  // Which characters are in play for the chosen mode.
+  function rosterFor(mode, contestants) {
+    if (mode === "girls") return ROSTER.filter((c) => genderOf(c) === "f");
+    if (mode === "beauty" && contestants === "girls") return ROSTER.filter((c) => genderOf(c) === "f");
+    if (mode === "beauty" && contestants === "boys") return ROSTER.filter((c) => genderOf(c) === "m");
+    return ROSTER;
+  }
+  const checked = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value;
 
   // ---------- images ----------
   const imgCache = {};
@@ -96,7 +112,14 @@
   function newGame() {
     const youFirst = Math.random() < 0.5;
     const mode = $("modePool").checked ? "pool" : "standard";
-    const shuffled = shuffle(ROSTER);
+    const gameMode = checked("contest") || "battle";
+    contest = gameMode === "beauty" ? "beauty" : "battle";
+    CATS = contest === "beauty" ? window.BEAUTY_CATEGORIES : window.CATEGORIES;
+    FX.setMode(contest);
+    document.body.classList.toggle("beauty", contest === "beauty");
+    const roster = rosterFor(gameMode, checked("contestants"));
+    computeMeans(roster);
+    const shuffled = shuffle(roster);
     state = {
       mode,
       deck: shuffled.slice(0, TOTAL_PICKS),
@@ -174,7 +197,8 @@
     $("revealTitle").textContent = c.title;
     $("revealName").textContent = c.name;
     $("revealSeries").textContent = c.series;
-    $("revealQ").textContent = yours ? `WHERE DOES ${c.name} FIGHT?` : `${state.oppName} IS CHOOSING...`;
+    $("revealQ").textContent = yours ? `WHERE DOES ${c.name} ${contest === "beauty" ? "SHINE" : "FIGHT"}?` : `${state.oppName} IS CHOOSING...`;
+    $("revealHelpText").textContent = contest === "beauty" ? "Put them where they look BEST - the highest total wins" : "Put them where they're STRONGEST - the highest total wins";
     $("revealHelp").style.visibility = yours ? "visible" : "hidden";
     const r = $("reveal");
     r.classList.remove("pop");
@@ -370,6 +394,8 @@
     bg.classList.remove("blurred");
     bg.style.backgroundImage = "radial-gradient(ellipse at 50% 60%, #2a2f3a 0%, #0b0d12 70%)";
     $("clashFinal").classList.add("hidden");
+    $("clashEyebrow").textContent = contest === "beauty" ? "THE JUDGING" : "THE CLASH";
+    $("finLabel").textContent = contest === "beauty" ? "TOTAL SCORE" : "TOTAL POWER";
     $("clash").classList.remove("final");
     const fy = $("fcYou"), fo = $("fcOpp");
 
@@ -483,7 +509,7 @@
     title.className = r === "win" ? "win" : r === "draw" ? "" : "lose";
     $("resultSub").textContent = forfeited
       ? ""
-      : `Total power ${t.youPts} - ${t.oppPts} · clashes won ${t.youWins} - ${t.oppWins}` + (t.youPts === t.oppPts ? " (tiebreak)" : "");
+      : `${contest === "beauty" ? "Total score" : "Total power"} ${t.youPts} - ${t.oppPts} · ${contest === "beauty" ? "rounds" : "clashes"} won ${t.youWins} - ${t.oppWins}` + (t.youPts === t.oppPts ? " (tiebreak)" : "");
     state.turn = "done";
     setPoolPhase(false);
     show("results");
@@ -523,6 +549,10 @@
     if (n >= 1 && n <= CATS.length) playerPlace(CATS[n - 1].key);
   });
   $("startBtn").addEventListener("click", newGame);
+  // The Girls / Boys / All choice only applies to the beauty contest.
+  const syncContestants = () => ($("contestants").hidden = checked("contest") !== "beauty");
+  document.querySelectorAll('input[name="contest"]').forEach((r) => r.addEventListener("change", syncContestants));
+  syncContestants();
   $("againBtn").addEventListener("click", () => show("start"));
   $("skipBtn").addEventListener("click", skipClash);
   // Two-step forfeit (pop-up confirm dialogs are blocked when the game is embedded).

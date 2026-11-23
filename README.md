@@ -15,25 +15,36 @@ Controls: click a slot or press keys **1-8**. You get 15 seconds per pick. If ti
 
 ## Scoring
 
-- Every character has a hidden 1-10 rating in each stat (`js/characters.js`).
+- Every character has a hidden 1-100 rating in each stat (`js/characters.js`).
+  Specialists are lopsided on purpose: Ayanokoji has 97 IQ but single digits in Abilities.
 - A slot scores the character's rating in that stat.
-- **BUM** is reversed. It scores `11 - average rating`, so it is the slot for your weakest draw.
+- **BUM** is reversed. It scores `100 - average rating`, so it is the slot for your weakest draw.
 
-## Adding character images
+## Character images
 
-The repo ships without official artwork. Characters show a generated placeholder portrait until you give them an image. To add one, either:
+Images come from AniList. `js/images.js` maps each character id to an AniList image URL, and the game
+loads them while you play (you need an internet connection). No artwork is stored in the repo.
 
-- drop a file into `images/` named after the character's `id`, e.g. `images/jiren.jpg` (`.jpg`, `.png` or `.webp`), or
-- set the `image` field in `js/characters.js` to a URL.
+To refresh the list after adding characters:
 
-Wide images (16:9 or so) look best, because they fill the background like the in-game splash.
+```
+node tools/fetch-images.js                 # look up characters that don't have a URL yet
+node tools/fetch-images.js --only gojo     # re-check specific ones (add --force to replace)
+node tools/fetch-images.js --download      # also save the files into images/ for offline play
+```
+
+The script uses each character's `search` name (or `name`) and picks the result from the right series.
+It marks any result whose series it couldn't confirm with `?`.
+
+To use a different picture for a character, save it as `images/<id>.jpg` (or `.png` / `.webp`).
+A local file always wins. Without any image, a generated placeholder portrait is shown.
 
 ## Adding characters
 
 Add a line to `js/characters.js`:
 
 ```js
-C("id", "Name", "Series", "Title shown in gold", [STR, SPD, DUR, IQ, BIQ, ABL, AURA]),
+C("id", "Name", "Series", "Title shown in gold", [STR, SPD, DUR, IQ, BIQ, ABL, AURA], { search: "AniList name" }),
 ```
 
-To give a new series its own placeholder colors, add it to `SERIES_COLORS`.
+Then run `node tools/fetch-images.js` to get the image. To give a new series its own placeholder colors, add it to `SERIES_COLORS`.

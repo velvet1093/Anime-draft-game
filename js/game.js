@@ -11,7 +11,7 @@
   // ---------- scoring ----------
   const avg = (c) => c.stats.reduce((a, b) => a + b, 0) / c.stats.length;
   function score(c, key) {
-    if (key === "bum") return Math.round(11 - avg(c));
+    if (key === "bum") return Math.max(1, Math.round(100 - avg(c)));
     return c.stats[STAT_INDEX[key]];
   }
   const rosterMean = {};
@@ -31,13 +31,14 @@
   }
   async function findImage(c) {
     if (c.id in imgCache) return imgCache[c.id];
-    const candidates = [c.image, `images/${c.id}.jpg`, `images/${c.id}.png`, `images/${c.id}.webp`].filter(Boolean);
+    const remote = (window.CHARACTER_IMAGES || {})[c.id];
+    const candidates = [`images/${c.id}.jpg`, `images/${c.id}.png`, `images/${c.id}.webp`, c.image, remote].filter(Boolean);
     let found = null;
     for (const url of candidates) {
       found = await tryLoad(url);
       if (found) break;
     }
-    imgCache[c.id] = found || placeholder(c);
+    imgCache[c.id] = found ? { url: found, real: true } : { url: placeholder(c), real: false };
     return imgCache[c.id];
   }
   function placeholder(c) {
@@ -63,10 +64,26 @@
     </svg>`;
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
+  let shownId = null;
   async function showBackground(c) {
-    const url = await findImage(c);
-    $("bg").style.backgroundImage = `url("${url}")`;
+    shownId = c.id;
+    const img = await findImage(c);
+    if (shownId !== c.id) return; // a newer draw replaced this one while loading
+    const bg = $("bg"), portrait = $("portrait");
+    bg.style.backgroundImage = `url("${img.url}")`;
+    bg.classList.toggle("blurred", img.real);
+    if (img.real) {
+      portrait.src = img.url;
+      portrait.classList.remove("hidden");
+      portrait.classList.remove("in");
+      void portrait.offsetWidth;
+      portrait.classList.add("in");
+    } else {
+      portrait.classList.add("hidden");
+    }
   }
+  // Warm the cache so draws appear instantly.
+  function preload(list) { list.forEach((c) => findImage(c)); }
 
   // ---------- state ----------
   let state = null;
@@ -85,7 +102,7 @@
   function newGame() {
     const youFirst = Math.random() < 0.5;
     state = {
-      deck: shuffle(ROSTER),
+      deck: shuffle(ROSTER).slice(0, TOTAL_PICKS),
       pick: 0,
       turn: youFirst ? "you" : "opp",
       you: Object.fromEntries(CATS.map((c) => [c.key, null])),
@@ -96,6 +113,7 @@
       busy: false,
     };
     showHints = $("hintToggle").checked;
+    preload(state.deck);
     $("youName").textContent = state.youName;
     $("oppName").textContent = state.oppName;
     show("game");
@@ -213,7 +231,7 @@
     CATS.forEach((cat) => {
       if (state.opp[cat.key]) return;
       // Value a slot by how much better this character is there than an average draw.
-      const v = score(c, cat.key) - rosterMean[cat.key] + (Math.random() - 0.5) * 1.5;
+      const v = score(c, cat.key) - rosterMean[cat.key] + (Math.random() - 0.5) * 12;
       if (v > bestVal) { bestVal = v; best = cat.key; }
     });
     place("opp", best);

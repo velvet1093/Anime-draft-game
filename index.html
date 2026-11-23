@@ -10,6 +10,7 @@
 </head>
 <body>
   <div id="bg" class="bg"></div>
+  <img id="portrait" class="portrait hidden" alt="" />
   <div class="vignette"></div>
 
   <!-- Start screen -->
@@ -19,7 +20,7 @@
       <h1>ANIME DRAFT</h1>
       <p>Each round you draw a random character. Put them in the category where they're <b>strongest</b>.
         Fill all 8 slots. The highest total wins.</p>
-      <p class="small">Tip: <b>BUM</b> rewards your <i>weakest</i> draw. The worse they are overall, the more points they score there.</p>
+      <p class="small">Tip: <b>BUM</b> rewards your <i>weakest</i> draw. The worse they are overall, the more points they score there. Every stat is rated 1-100.</p>
       <label class="field">Your name <input id="nameInput" maxlength="16" placeholder="YOU" /></label>
       <label class="check"><input type="checkbox" id="hintToggle" /> Show ratings while drafting (easy mode)</label>
       <button id="startBtn" class="btn primary">START DRAFT</button>
@@ -76,6 +77,7 @@
   </section>
 
   <script src="js/characters.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

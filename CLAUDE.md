@@ -14,5 +14,7 @@ Play the game: https://claude.ai/artifact/438QPKjzTf2TK6aHy89nTK
   3. Publish `dist/index.html` with the Artifact tool, passing `url: https://claude.ai/artifact/438QPKjzTf2TK6aHy89nTK`
      (read it first from a new conversation) and every file in dist/images as `files` (`images/<name>` -> `dist/images/<name>`).
 - Character images are never committed (the repo is public). The images/ and dist/ folders are git-ignored.
+- Featherine's image was supplied by the user and can't be refetched. If images/featherine.webp is missing,
+  restore it from the published artifact (Artifact tool, action "read", path "images/featherine.webp").
 - Stats stay hidden from the player until the clash phase. Don't show ratings during the draft.
 - Every character needs battle stats in js/characters.js AND looks in js/looks.js (girls also go in GENDER.f there).

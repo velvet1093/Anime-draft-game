@@ -4,6 +4,7 @@
   const STAT_INDEX = { str: 0, spd: 1, dur: 2, iq: 3, biq: 4, abl: 5, aura: 6 };
   const TURN_SECONDS = 15;
   const TOTAL_PICKS = CATS.length * 2;
+  const POOL_SIZE = 30;
   const BOT_NAMES = ["SUPERSTARRRR2", "NightRaidr", "xX_Sensei_Xx", "GrandLineGuy", "DomainExpander", "HokageMain", "UltraInstinkt", "PlusUltra99"];
 
   const $ = (id) => document.getElementById(id);
@@ -86,7 +87,6 @@
   // ---------- state ----------
   let state = null;
   let timerHandle = null;
-  let showHints = false;
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -99,8 +99,13 @@
 
   function newGame() {
     const youFirst = Math.random() < 0.5;
+    const mode = $("modePool").checked ? "pool" : "standard";
+    const shuffled = shuffle(ROSTER);
     state = {
-      deck: shuffle(ROSTER).slice(0, TOTAL_PICKS),
+      mode,
+      deck: shuffled.slice(0, TOTAL_PICKS),
+      pool: mode === "pool" ? shuffled.slice(0, POOL_SIZE) : [],
+      taken: {},
       pick: 0,
       turn: youFirst ? "you" : "opp",
       you: Object.fromEntries(CATS.map((c) => [c.key, null])),
@@ -110,8 +115,7 @@
       youName: ($("nameInput").value.trim() || "YOU").toUpperCase(),
       busy: false,
     };
-    showHints = $("hintToggle").checked;
-    preload(state.deck);
+    preload(mode === "pool" ? state.pool : state.deck);
     $("youName").textContent = state.youName;
     $("oppName").textContent = state.oppName;
     show("game");
@@ -133,13 +137,9 @@
     CATS.forEach((cat, i) => {
       const c = state.you[cat.key];
       const el = document.createElement("div");
-      el.className = "slot " + (c ? "filled" : "open") + (state.turn === "you" && !c && !state.busy ? " active" : "");
+      el.className = "slot " + (c ? "filled" : "open") + (state.turn === "you" && state.current && !c && !state.busy ? " active" : "");
       if (flash === "you:" + cat.key) el.classList.add("flash");
-      let hint = "";
-      if (!c && showHints && state.turn === "you" && state.current) {
-        hint = `<span class="hint">+${score(state.current, cat.key)}</span>`;
-      }
-      el.innerHTML = `<span class="key">${i + 1}</span><span>${cat.label}</span>${hint}<span class="state">${c ? c.name.toUpperCase() : "OPEN"}</span>`;
+      el.innerHTML = `<span class="key">${i + 1}</span><span>${cat.label}</span><span class="state">${c ? c.name.toUpperCase() : "OPEN"}</span>`;
       if (!c) el.addEventListener("click", () => playerPlace(cat.key));
       you.appendChild(el);
     });
@@ -156,12 +156,25 @@
     });
   }
 
-  function renderReveal(c, who) {
-    const yours = who === "you";
-    $("statusTitle").textContent = yours ? "YOUR DRAW" : "OPPONENT'S DRAW";
+  function setStatus(yours, title) {
+    $("statusTitle").textContent = title;
     document.querySelector(".status-card").classList.toggle("opp-turn", !yours);
     $("pickLabel").textContent = `PICK ${String(state.pick).padStart(2, "0")} / ${TOTAL_PICKS}`;
-    $("revealWho").textContent = yours ? "YOUR DRAW" : `${state.oppName} DRAWS`;
+  }
+
+  function setPoolPhase(on) {
+    $("pool").classList.toggle("hidden", !on);
+    $("reveal").classList.toggle("hidden", on);
+    document.body.classList.toggle("pool-phase", on);
+    if (on) { $("portraitCard").classList.add("hidden"); FX.stop(); shownId = null; }
+  }
+
+  function renderReveal(c, who) {
+    const yours = who === "you";
+    const pool = state.mode === "pool";
+    setPoolPhase(false);
+    setStatus(yours, yours ? (pool ? "YOUR PICK" : "YOUR DRAW") : pool ? "OPPONENT'S PICK" : "OPPONENT'S DRAW");
+    $("revealWho").textContent = yours ? (pool ? "YOU PICKED" : "YOUR DRAW") : `${state.oppName} ${pool ? "PICKED" : "DRAWS"}`;
     $("revealTitle").textContent = c.title;
     $("revealName").textContent = c.name;
     $("revealSeries").textContent = c.series;
@@ -174,11 +187,81 @@
     showCard(c);
   }
 
+  // ---------- pool draft ----------
+  function renderPool(chosenId) {
+    const grid = $("poolGrid");
+    grid.innerHTML = "";
+    const canPick = state.turn === "you" && !state.current && !state.busy;
+    state.pool.forEach((c) => {
+      const owner = state.taken[c.id];
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "pc" + (owner ? " taken" : canPick ? " can" : "") + (c.id === chosenId ? " chosen" : "");
+      el.disabled = !!owner || !canPick;
+      el.style.setProperty("--card-glow", seriesColor(c));
+      el.innerHTML = `<img alt="" /><span class="pn">${c.name}</span>` + (owner ? `<span class="tag ${owner}">${owner === "you" ? "YOU" : "OPP"}</span>` : "");
+      findImage(c).then((img) => (el.querySelector("img").src = img.url));
+      if (!owner) el.addEventListener("click", () => playerPoolPick(c));
+      grid.appendChild(el);
+    });
+  }
+
+  function showPoolTurn() {
+    setPoolPhase(true);
+    const yours = state.turn === "you";
+    setStatus(yours, yours ? "PICK A CHARACTER" : "OPPONENT IS PICKING");
+    renderPool();
+  }
+
+  function poolPick(c, side) {
+    state.taken[c.id] = side;
+    state.current = c;
+    renderReveal(c, side);
+    renderBoards();
+  }
+
+  function playerPoolPick(c) {
+    if (!state || state.mode !== "pool" || state.turn !== "you" || state.current || state.busy || state.taken[c.id]) return;
+    poolPick(c, "you");
+  }
+
+  // The bot looks for the character + slot pair that beats an average draw by the most.
+  function botPoolPick() {
+    if (!state || state.turn !== "opp") return;
+    let best = null, bestVal = -Infinity;
+    state.pool.forEach((c) => {
+      if (state.taken[c.id]) return;
+      CATS.forEach((cat) => {
+        if (state.opp[cat.key]) return;
+        const v = score(c, cat.key) - rosterMean[cat.key] + (Math.random() - 0.5) * 16;
+        if (v > bestVal) { bestVal = v; best = c; }
+      });
+    });
+    renderPool(best.id);
+    setTimeout(() => {
+      if (state.turn !== "opp") return;
+      poolPick(best, "opp");
+      setTimeout(botPlace, 1700);
+    }, 800);
+  }
+
   // ---------- turn flow ----------
   function nextTurn() {
     if (state.turn === "done") return;
     if (state.pick >= TOTAL_PICKS) return finishDraft();
     state.pick++;
+    if (state.mode === "pool") {
+      state.current = null;
+      state.busy = false;
+      showPoolTurn();
+      renderBoards();
+      startTimer();
+      if (state.turn === "opp") {
+        state.busy = true;
+        setTimeout(botPoolPick, 1100 + Math.random() * 1200);
+      }
+      return;
+    }
     state.current = state.deck.pop();
     state.busy = false;
     renderReveal(state.current, state.turn);
@@ -201,7 +284,11 @@
       if (left <= 0) {
         clearInterval(timerHandle);
         if (state.turn === "you") {
-          // Out of time: drop into a random open slot.
+          // Out of time: random pick (pool mode) and a random open slot.
+          if (state.mode === "pool" && !state.current) {
+            const left = state.pool.filter((c) => !state.taken[c.id]);
+            poolPick(left[Math.floor(Math.random() * left.length)], "you");
+          }
           const open = CATS.filter((c) => !state.you[c.key]);
           playerPlace(open[Math.floor(Math.random() * open.length)].key);
         }
@@ -221,7 +308,7 @@
   }
 
   function playerPlace(key) {
-    if (!state || state.turn !== "you" || state.busy || state.you[key]) return;
+    if (!state || state.turn !== "you" || state.busy || !state.current || state.you[key]) return;
     place("you", key);
   }
 
@@ -365,6 +452,7 @@
 
   function finishDraft() {
     clearInterval(timerHandle);
+    setPoolPhase(false);
     state.turn = "clash";
     runClash();
   }
@@ -395,6 +483,7 @@
       ? ""
       : `Clashes won ${t.youWins} - ${t.oppWins}` + (t.youWins === t.oppWins ? ` · tiebreak on total power ${t.youPts} - ${t.oppPts}` : "");
     state.turn = "done";
+    setPoolPhase(false);
     show("results");
   }
 
@@ -407,8 +496,21 @@
   $("startBtn").addEventListener("click", newGame);
   $("againBtn").addEventListener("click", () => show("start"));
   $("skipBtn").addEventListener("click", skipClash);
+  // Two-step forfeit (pop-up confirm dialogs are blocked when the game is embedded).
+  let forfeitTimer = null;
   $("forfeitBtn").addEventListener("click", () => {
-    if (confirm("Forfeit this draft?")) { state.turn = "done"; finish(true); }
+    const btn = $("forfeitBtn");
+    if (btn.classList.contains("armed")) {
+      clearTimeout(forfeitTimer);
+      btn.classList.remove("armed");
+      btn.textContent = "FORFEIT";
+      state.turn = "done";
+      finish(true);
+      return;
+    }
+    btn.classList.add("armed");
+    btn.textContent = "TAP AGAIN TO FORFEIT";
+    forfeitTimer = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = "FORFEIT"; }, 3000);
   });
 
   // Start-screen backdrop

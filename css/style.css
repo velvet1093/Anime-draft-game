@@ -94,6 +94,14 @@ body.shake { animation: shake .09s linear infinite; }
 .start-card p { color: #ddd; line-height: 1.5; font-family: Arial, sans-serif; font-size: 15px; }
 .start-card .small { font-size: 13px; color: var(--muted); }
 .field, .check { display: block; margin: 14px 0; font-size: 15px; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 4px; text-align: left; }
+.mode { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; cursor: pointer;
+  border: 2px solid rgba(255,255,255,.35); border-radius: 10px; background: rgba(0,0,0,.25); transition: border-color .15s, background .15s; }
+.mode input { position: absolute; opacity: 0; pointer-events: none; }
+.mode b { font-size: 18px; letter-spacing: .04em; }
+.mode span { font-family: Arial, sans-serif; font-size: 12px; color: #ccc; line-height: 1.4; }
+.mode:has(input:checked) { border-color: var(--gold); background: rgba(255,209,102,.12); }
+.mode:has(input:focus-visible) { outline: 2px solid #fff; outline-offset: 2px; }
 .field input {
   margin-left: 8px; font-family: inherit; font-size: 16px; padding: 6px 10px;
   background: #111; color: #fff; border: 1px solid #555; border-radius: 6px; width: 180px;
@@ -120,7 +128,6 @@ body.shake { animation: shake .09s linear infinite; }
   border-radius: 3px; background: #666;
 }
 .slot .state { font-size: 13px; font-weight: 400; color: #ddd; text-align: right; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.slot .hint { font-size: 12px; color: var(--gold); margin-left: auto; margin-right: 12px; }
 .slot.filled::before { background: var(--green); }
 .slot.filled .state { color: #fff; font-weight: 600; }
 
@@ -163,7 +170,29 @@ body.shake { animation: shake .09s linear infinite; }
 .reveal.pop .reveal-name { animation: pop .35s ease; }
 @keyframes pop { 0% { transform: scale(.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
+.forfeit.armed { background: #8a1c1c; border-color: #ff9a9a; }
 .forfeit { position: fixed; left: 6vw; bottom: 22px; padding: 8px 40px; font-size: 15px; }
+
+/* Pool draft grid */
+.pool { position: absolute; inset: 24px 0 0; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+.pool-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 660px; padding: 4px; }
+.pc {
+  position: relative; aspect-ratio: 3 / 4; padding: 0; border-radius: 8px; overflow: hidden; background: #111;
+  border: 2px solid rgba(255,255,255,.75); color: #fff; font-family: inherit; cursor: default;
+  transition: transform .12s, box-shadow .12s, border-color .12s, filter .2s;
+}
+.pc img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.pc .pn {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 3px 4px; font-size: 11px; line-height: 1.1;
+  text-transform: uppercase; text-align: center; background: linear-gradient(transparent, rgba(0,0,0,.92));
+}
+.pc.can { cursor: pointer; }
+.pc.can:hover, .pc.can:focus-visible { transform: scale(1.08); z-index: 2; border-color: var(--gold); box-shadow: 0 0 20px var(--card-glow); outline: none; }
+.pc.taken { filter: grayscale(1) brightness(.4); }
+.pc .tag { position: absolute; top: 4px; left: 4px; font-size: 10px; padding: 1px 5px; border-radius: 3px; }
+.pc .tag.you { background: #2c5cc5; }
+.pc .tag.opp { background: #b3261e; }
+.pc.chosen { transform: scale(1.12); z-index: 2; border-color: var(--red); box-shadow: 0 0 26px var(--red); }
 
 /* Results */
 .results-card h2 { font-size: 52px; margin: 4px 0 14px; }
@@ -253,4 +282,8 @@ body.shake { animation: shake .09s linear infinite; }
   .status-card { position: static; transform: none; width: 100%; margin-bottom: 352px; }
   #game.screen { padding-top: 16px; }
   .forfeit { position: static; align-self: flex-start; }
+  .pool { position: static; }
+  .pool-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  body.pool-phase .status-card { margin-bottom: 12px; }
+  .modes { grid-template-columns: 1fr; }
 }

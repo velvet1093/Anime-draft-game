@@ -4,6 +4,17 @@ A browser draft game. Each turn you draw a random anime character and slot them 
 
 ## Play
 
+Online (private claude.ai link): https://claude.ai/artifact/438QPKjzTf2TK6aHy89nTK
+
+### Game modes
+
+- **Standard**: each turn you draw a random character and choose their slot.
+- **Pool Draft**: 30 random characters are laid out. You and the bot take turns picking one, then choose their slot.
+
+Stats stay hidden until the clash.
+
+### Run locally
+
 Open `index.html` in a browser, or serve the folder:
 
 ```
@@ -11,7 +22,16 @@ python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
-Controls: click a slot or press keys **1-8**. You get 15 seconds per pick. If time runs out, your character goes into a random open slot.
+Controls: click a slot or press keys **1-8**. You get 15 seconds per turn. If time runs out, you get a random pick (Pool Draft) and a random open slot.
+
+### Rebuild the online version
+
+```
+node tools/fetch-images.js --download   # saves images into images/ (git-ignored)
+node tools/build-artifact.js            # bundles everything into dist/
+```
+
+Then publish `dist/` to the same artifact (see CLAUDE.md).
 
 ## Effects
 
@@ -25,7 +45,7 @@ To preview one character's effect, open `index.html#fx=madara` (use any characte
 
 ## Scoring
 
-- Every character has a hidden 1-100 rating in each stat (`js/characters.js`).
+- Every character has a 1-100 rating in each stat, hidden until the clash (`js/characters.js`).
   Specialists are lopsided on purpose: Ayanokoji has 97 IQ but single digits in Abilities.
 - A slot scores the character's rating in that stat.
 - **BUM** is reversed. It scores `100 - average rating`, so it is the slot for your weakest draw.

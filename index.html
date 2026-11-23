@@ -20,12 +20,16 @@
     <div class="start-card">
       <div class="eyebrow">THE DRAFT</div>
       <h1>ANIME DRAFT</h1>
-      <p>Each round you draw a random character. Put them in the category where they're <b>strongest</b>.
-        Fill all 8 slots, then your cards <b>clash</b> one-on-one against your opponent's in each category.
-        Win the most clashes to win the match.</p>
-      <p class="small">Tip: <b>BUM</b> rewards your <i>weakest</i> draw. The worse they are overall, the more points they score there. Every stat is rated 1-100.</p>
+      <p>Put each character in the category where they're <b>strongest</b>. Fill all 8 slots, then your cards
+        <b>clash</b> one-on-one against your opponent's. Win the most clashes to win the match.</p>
+      <p class="small">Stats (1-100) stay hidden until the clash. <b>BUM</b> rewards your <i>weakest</i> character: the worse they are overall, the more they score there.</p>
+      <div class="modes" role="radiogroup" aria-label="Game mode">
+        <label class="mode"><input type="radio" name="mode" id="modeStandard" value="standard" checked />
+          <b>STANDARD</b><span>Each turn you draw a random character and choose their slot.</span></label>
+        <label class="mode"><input type="radio" name="mode" id="modePool" value="pool" />
+          <b>POOL DRAFT</b><span>30 characters on the table. Take turns picking who you want.</span></label>
+      </div>
       <label class="field">Your name <input id="nameInput" maxlength="16" placeholder="YOU" /></label>
-      <label class="check"><input type="checkbox" id="hintToggle" /> Show ratings while drafting (easy mode)</label>
       <button id="startBtn" class="btn primary">START DRAFT</button>
     </div>
   </section>
@@ -45,6 +49,8 @@
         <div class="pick" id="pickLabel">PICK 01 / 16</div>
         <div class="timer"><div class="bar"><div id="timerBar"></div></div><span id="timerNum">15</span></div>
       </div>
+
+      <div class="pool hidden" id="pool"><div class="pool-grid" id="poolGrid"></div></div>
 
       <div class="reveal" id="reveal">
         <div class="reveal-who" id="revealWho">YOUR DRAW</div>

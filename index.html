@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anime Draft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="bg" class="bg"></div>
+  <div class="vignette"></div>
+
+  <!-- Start screen -->
+  <section id="start" class="screen">
+    <div class="start-card">
+      <div class="eyebrow">THE DRAFT</div>
+      <h1>ANIME DRAFT</h1>
+      <p>Each round you draw a random character. Put them in the category where they're <b>strongest</b>.
+        Fill all 8 slots. The highest total wins.</p>
+      <p class="small">Tip: <b>BUM</b> rewards your <i>weakest</i> draw. The worse they are overall, the more points they score there.</p>
+      <label class="field">Your name <input id="nameInput" maxlength="16" placeholder="YOU" /></label>
+      <label class="check"><input type="checkbox" id="hintToggle" /> Show ratings while drafting (easy mode)</label>
+      <button id="startBtn" class="btn primary">START DRAFT</button>
+    </div>
+  </section>
+
+  <!-- Game screen -->
+  <section id="game" class="screen hidden">
+    <aside class="board you">
+      <div class="board-eyebrow">YOUR BOARD</div>
+      <div class="board-name" id="youName">YOU</div>
+      <div class="slots" id="youSlots"></div>
+    </aside>
+
+    <div class="center">
+      <div class="status-card">
+        <div class="eyebrow gold">THE DRAFT</div>
+        <div class="status-title" id="statusTitle">YOUR DRAW</div>
+        <div class="pick" id="pickLabel">PICK 01 / 16</div>
+        <div class="timer"><div class="bar"><div id="timerBar"></div></div><span id="timerNum">15</span></div>
+      </div>
+
+      <div class="reveal" id="reveal">
+        <div class="reveal-who" id="revealWho">YOUR DRAW</div>
+        <div class="reveal-title" id="revealTitle"></div>
+        <div class="reveal-name" id="revealName"></div>
+        <div class="reveal-series" id="revealSeries"></div>
+        <div class="reveal-q" id="revealQ"></div>
+        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - the highest total wins / keys 1 - 8</div>
+      </div>
+    </div>
+
+    <aside class="board opp">
+      <div class="board-eyebrow red">OPPONENT</div>
+      <div class="board-name" id="oppName">OPPONENT</div>
+      <div class="slots" id="oppSlots"></div>
+    </aside>
+
+    <button id="forfeitBtn" class="btn forfeit">FORFEIT</button>
+  </section>
+
+  <!-- Results -->
+  <section id="results" class="screen hidden">
+    <div class="results-card">
+      <div class="eyebrow gold">FINAL RESULTS</div>
+      <h2 id="resultTitle">YOU WIN</h2>
+      <table class="results-table">
+        <thead><tr><th id="rYou">YOU</th><th></th><th id="rOpp">OPP</th></tr></thead>
+        <tbody id="resultRows"></tbody>
+        <tfoot><tr><td id="youTotal"></td><td>TOTAL</td><td id="oppTotal"></td></tr></tfoot>
+      </table>
+      <button id="againBtn" class="btn primary">PLAY AGAIN</button>
+    </div>
+  </section>
+
+  <script src="js/characters.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

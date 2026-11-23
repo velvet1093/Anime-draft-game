@@ -39,7 +39,7 @@ Every card plays an effect when it appears, and the winner's effect plays again 
 
 - **Signature effects**: Madara's Sharingan, Itachi's Mangekyō, Gojo's Infinite Void, Sukuna's slashes, Saitama's One Punch, Ayanokoji's White Room, Mob's ???% meter, and about 40 more. They're listed in `SPECIAL` in `js/effects.js`.
 - **General effects** for everyone else, based on their best stat (if it is 80+): IQ shows floating equations, Speed shows speed lines, Strength cracks the ground, Durability adds a hex shield, Battle IQ a targeting HUD, Abilities a magic circle, and Aura flames.
-- **Certified bum**: characters averaging under 40 get rain and floating L's.
+- **Certified bum**: characters with a BUM rating of 85+ (Mineta, Yamcha, Megumi...) get rain and floating L's.
 
 To preview one character's effect, open `index.html#fx=madara` (use any character id).
 
@@ -48,11 +48,16 @@ To preview one character's effect, open `index.html#fx=madara` (use any characte
 - Every character has a 1-100 rating in each stat, hidden until the clash (`js/characters.js`).
   Specialists are lopsided on purpose: Ayanokoji has 97 IQ but single digits in Abilities.
 - A slot scores the character's rating in that stat.
-- **BUM** is reversed. It scores `100 - average rating`, so it is the slot for your weakest draw.
+- **BUM** is its own 1-100 rating: how much of a bum the fandom considers them. Pure garbage (Mineta 100, Yamcha 99)
+  and heavily slandered "potential men" (Megumi 92, Sakura 95) both rate high, even when their other stats are decent.
 
 ## Character images
 
-Images come from AniList. `js/images.js` maps each character id to an AniList image URL, and the game
+HD images come from each series' Fandom wiki (`python3 tools/fetch-hd-images.py`, saved as `images/<id>.webp`),
+with AniList portraits as the fallback. On the wiki side, `wikiImage` in `js/characters.js` picks a specific file
+and `noHd: true` skips characters without good HD art.
+
+AniList images: `js/images.js` maps each character id to an AniList image URL, and the game
 loads them while you play (you need an internet connection). No artwork is stored in the repo.
 
 To refresh the list after adding characters:

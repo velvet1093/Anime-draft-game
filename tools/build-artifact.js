@@ -33,9 +33,15 @@ fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(path.join(DIST, "images"), { recursive: true });
 fs.writeFileSync(path.join(DIST, "index.html"), page);
 
+// One image per character: the HD .webp when there is one, else the AniList file.
+const files = fs.readdirSync(path.join(ROOT, "images")).filter((f) => /\.(png|jpe?g|webp)$/i.test(f));
+const byId = {};
+for (const f of files) {
+  const id = f.replace(/\.\w+$/, "");
+  if (!byId[id] || f.endsWith(".webp")) byId[id] = f;
+}
 let n = 0;
-for (const f of fs.readdirSync(path.join(ROOT, "images"))) {
-  if (!/\.(png|jpe?g|webp)$/i.test(f)) continue;
+for (const f of Object.values(byId)) {
   fs.copyFileSync(path.join(ROOT, "images", f), path.join(DIST, "images", f));
   n++;
 }

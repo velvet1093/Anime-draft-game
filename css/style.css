@@ -1,5 +1,5 @@
 :root {
-  --panel: rgba(28, 30, 36, 0.82);
+  --panel: rgba(22, 24, 30, 0.72);
   --line: rgba(255, 255, 255, 0.85);
   --muted: rgba(255, 255, 255, 0.6);
   --gold: #ffd166;
@@ -35,23 +35,20 @@ html, body {
 .fx { position: fixed; inset: 0; pointer-events: none; }
 .fx.back { z-index: 2; }
 .fx.front { z-index: 4; }
-.pcard {
-  position: fixed; z-index: 3; left: 50%; transform: translateX(-50%);
-  top: 168px; bottom: 205px; aspect-ratio: 2 / 3; max-width: 36vw;
-  border-radius: 14px; overflow: hidden; background: #111;
-  border: 3px solid rgba(255, 255, 255, .92);
-  box-shadow: 0 0 0 1px #000, 0 0 45px var(--card-glow, #fff), 0 24px 60px rgba(0, 0, 0, .85);
+/* The drawn character, big behind the UI */
+.hero {
+  position: fixed; z-index: 3; left: 50%; top: 0; bottom: 0; width: min(100vw, 135vh);
+  transform: translateX(-50%); pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent), linear-gradient(to bottom, #000 82%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent), linear-gradient(to bottom, #000 82%, transparent);
+  mask-composite: intersect;
 }
-.pcard img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; filter: contrast(1.06) saturate(1.1); }
-.pcard-shine {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
-  transform: translateX(-120%);
-}
-.pcard.in { animation: cardIn .5s cubic-bezier(.2,1.3,.4,1); }
-.pcard.in .pcard-shine { animation: shine 1s .35s ease; }
-@keyframes cardIn { from { opacity: 0; transform: translateX(-50%) scale(.75) rotateY(35deg); } to { opacity: 1; transform: translateX(-50%) scale(1) rotateY(0); } }
-@keyframes shine { to { transform: translateX(120%); } }
+.hero img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; display: block; filter: saturate(1.08) contrast(1.04); }
+.hero.in { animation: heroIn .45s ease-out; }
+@keyframes heroIn { from { opacity: 0; transform: translateX(-50%) scale(1.06); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+/* Invisible box the card effects are centred on */
+.hero-anchor { position: fixed; left: 50%; top: 16vh; height: 58vh; aspect-ratio: 2 / 3; transform: translateX(-50%); pointer-events: none; }
 
 body.shake { animation: shake .09s linear infinite; }
 @keyframes shake {
@@ -112,7 +109,7 @@ body.shake { animation: shake .09s linear infinite; }
 
 .board-eyebrow { color: var(--blue); font-size: 14px; letter-spacing: .06em; }
 .board-eyebrow.red { color: var(--red); }
-.board-name { font-size: 28px; font-weight: 600; margin: 4px 0 12px; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-name { text-shadow: 0 2px 8px #000; font-size: 28px; font-weight: 600; margin: 4px 0 12px; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board.opp { text-align: right; }
 
 .slots { display: flex; flex-direction: column; gap: clamp(6px, 1.2vh, 10px); }
@@ -259,8 +256,13 @@ body.shake { animation: shake .09s linear infinite; }
 .results-table tfoot td { font-size: 22px; font-weight: 700; border-top: 2px solid #fff; }
 
 /* Phones / narrow screens */
-@media (max-width: 860px) {
-  .pcard { position: absolute; top: 150px; bottom: auto; height: 330px; max-width: none; }
+@media (max-width: 860px) and (orientation: portrait) {
+  .hero { position: absolute; top: 120px; bottom: auto; height: calc(78vh - 120px); width: 100vw;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent); mask-image: linear-gradient(to bottom, #000 70%, transparent); }
+  .hero img { object-fit: cover; object-position: center top; }
+  .hero-anchor { position: absolute; top: 140px; height: 42vh; }
+  .center { min-height: calc(78vh - 16px); }
+  body.pool-phase .center { min-height: 0; }
   .clash-cat { font-size: 32px; }
   .arena { gap: 10px; }
   .fcard { width: 40vw; }
@@ -270,7 +272,7 @@ body.shake { animation: shake .09s linear infinite; }
   .clash-banner { font-size: 64px; }
   html, body { overflow: auto; height: auto; min-height: 100%; }
   #game.screen { position: relative; inset: auto; min-height: 100%; display: flex; flex-direction: column; padding: 150px 16px 80px; gap: 16px; }
-  .center { order: -1; min-height: 0; }
+  .center { order: -1; }
   .reveal { position: static; margin-top: auto; }
   .reveal-name { font-size: 48px; }
   .reveal-title { font-size: 22px; }
@@ -279,11 +281,63 @@ body.shake { animation: shake .09s linear infinite; }
   .opp .slot { height: 40px; font-size: 14px; }
   .slot { height: 48px; font-size: 17px; }
   .slot .key { display: none; }
-  .status-card { position: static; transform: none; width: 100%; margin-bottom: 352px; }
+  .status-card { position: static; transform: none; width: 100%; margin-bottom: 12px; }
   #game.screen { padding-top: 16px; }
   .forfeit { position: static; align-self: flex-start; }
   .pool { position: static; }
   .pool-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-  body.pool-phase .status-card { margin-bottom: 12px; }
   .modes { grid-template-columns: 1fr; }
+}
+
+/* Phones held sideways and other short screens: keep the side-by-side layout, just tighter */
+@media (max-height: 520px) and (orientation: landscape) {
+  #game { grid-template-columns: minmax(150px, 250px) 1fr minmax(120px, 200px); padding: 58px 3vw 6px; gap: 12px; }
+  .status-card { top: 6px; padding: 4px 14px 5px; width: min(300px, 40vw); }
+  .status-card .eyebrow { display: none; }
+  .status-title { font-size: 16px; }
+  .pick { font-size: 9px; margin: 0 0 3px; }
+  .timer .bar { height: 6px; }
+  #timerNum { font-size: 12px; }
+  .board-eyebrow { font-size: 10px; }
+  .board-name { font-size: 16px; margin: 0 0 4px; }
+  .slots { gap: 4px; }
+  .slot, .opp .slot { height: calc((100vh - 150px) / 8 - 4px); min-height: 22px; font-size: 13px; border-width: 2px; padding-left: 20px; }
+  .slot::before { left: 7px; width: 4px; }
+  .opp .slot { font-size: 12px; padding: 0 16px 0 10px; }
+  .slot .state { font-size: 10px; }
+  .slot .key { display: none; }
+  .reveal-who { font-size: 12px; }
+  .reveal-fx { font-size: 10px; margin: 0; }
+  .reveal-title { font-size: 15px; }
+  .reveal-name { font-size: 34px; }
+  .reveal-series { font-size: 11px; }
+  .reveal-q { font-size: 13px; }
+  .reveal-help { font-size: 9px; margin-top: 2px; }
+  .forfeit { left: 2vw; bottom: 6px; padding: 4px 14px; font-size: 11px; }
+  .hero-anchor { top: 14vh; height: 62vh; }
+  .pool { inset: 4px 0 0; }
+  .pool-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .pc .pn { font-size: 9px; padding: 8px 2px 2px; }
+  #clash { padding: 6px 16px; }
+  .clash-top .eyebrow { display: none; }
+  .clash-round { font-size: 10px; }
+  .clash-cat { font-size: 24px; }
+  .clash-score { font-size: 14px; margin-top: 0; }
+  .clash-score b { font-size: 18px; }
+  .fcard { width: min(150px, 28vw, 40vh); }
+  .fname { font-size: 14px; margin-top: 4px; }
+  .ffx { font-size: 9px; min-height: 11px; }
+  .fnum { font-size: 28px; }
+  .vs { font-size: 30px; }
+  .clash-banner { font-size: 56px; }
+  .skip { right: 10px; bottom: 8px; padding: 4px 14px; font-size: 12px; }
+  .start-card { padding: 14px 20px; }
+  .start-card h1 { font-size: 30px; margin: 2px 0 6px; }
+  .start-card p { font-size: 13px; margin: 6px 0; }
+  .modes { margin: 8px 0 0; }
+  .mode { padding: 8px 10px; }
+  .field { margin: 8px 0; }
+  .results-card { padding: 14px 20px; }
+  .results-card h2 { font-size: 30px; margin: 0 0 6px; }
+  .results-table td { padding: 3px 6px; font-size: 13px; }
 }

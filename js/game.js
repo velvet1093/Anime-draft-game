@@ -1,7 +1,7 @@
 (() => {
   const CATS = window.CATEGORIES;
   const ROSTER = window.CHARACTERS;
-  const STAT_INDEX = { str: 0, spd: 1, dur: 2, iq: 3, biq: 4, abl: 5, aura: 6 };
+  const STAT_INDEX = { str: 0, spd: 1, dur: 2, iq: 3, biq: 4, abl: 5, aura: 6, bum: 7 };
   const TURN_SECONDS = 15;
   const TOTAL_PICKS = CATS.length * 2;
   const POOL_SIZE = 30;
@@ -11,11 +11,7 @@
   const sleepRaw = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ---------- scoring ----------
-  const avg = (c) => c.stats.reduce((a, b) => a + b, 0) / c.stats.length;
-  function score(c, key) {
-    if (key === "bum") return Math.max(1, Math.round(100 - avg(c)));
-    return c.stats[STAT_INDEX[key]];
-  }
+  const score = (c, key) => c.stats[STAT_INDEX[key]];
   const rosterMean = {};
   CATS.forEach((cat) => {
     rosterMean[cat.key] = ROSTER.reduce((s, c) => s + score(c, cat.key), 0) / ROSTER.length;
@@ -35,7 +31,7 @@
     if (!imgCache[c.id]) {
       imgCache[c.id] = (async () => {
         const remote = (window.CHARACTER_IMAGES || {})[c.id];
-        const candidates = [`images/${c.id}.jpg`, `images/${c.id}.png`, `images/${c.id}.webp`, c.image, remote].filter(Boolean);
+        const candidates = [`images/${c.id}.webp`, `images/${c.id}.jpg`, `images/${c.id}.png`, c.image, remote].filter(Boolean);
         for (const url of candidates) {
           const found = await tryLoad(url);
           if (found) return { url: found, real: true };
@@ -69,7 +65,7 @@
     shownId = c.id;
     const img = await findImage(c);
     if (shownId !== c.id) return; // a newer draw replaced this one while loading
-    const bg = $("bg"), card = $("portraitCard");
+    const bg = $("bg"), card = $("hero");
     bg.style.backgroundImage = `url("${img.url}")`;
     bg.classList.toggle("blurred", img.real);
     $("portrait").src = img.url;
@@ -77,7 +73,7 @@
     card.classList.remove("hidden", "in");
     void card.offsetWidth;
     card.classList.add("in");
-    const fxName = FX.play(c, card);
+    const fxName = FX.play(c, $("heroAnchor"));
     const badge = $("revealFx");
     badge.textContent = fxName ? `✦ ${fxName} ✦` : "";
     badge.style.visibility = fxName ? "visible" : "hidden";
@@ -125,7 +121,7 @@
 
   function show(screen) {
     ["start", "game", "clash", "results"].forEach((s) => $(s).classList.toggle("hidden", s !== screen));
-    if (screen !== "game") $("portraitCard").classList.add("hidden");
+    if (screen !== "game") $("hero").classList.add("hidden");
     if (screen === "start" || screen === "results") FX.stop();
     window.scrollTo(0, 0);
   }
@@ -166,7 +162,7 @@
     $("pool").classList.toggle("hidden", !on);
     $("reveal").classList.toggle("hidden", on);
     document.body.classList.toggle("pool-phase", on);
-    if (on) { $("portraitCard").classList.add("hidden"); FX.stop(); shownId = null; }
+    if (on) { $("hero").classList.add("hidden"); FX.stop(); shownId = null; }
   }
 
   function renderReveal(c, who) {

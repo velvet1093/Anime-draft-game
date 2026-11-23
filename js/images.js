@@ -28,6 +28,7 @@ window.CHARACTER_IMAGES = {
   "light": "https://s4.anilist.co/file/anilistcdn/character/large/b80-26EhwSsSqQ50.png",
   "luffy": "https://s4.anilist.co/file/anilistcdn/character/large/b40-MNypXsxSRb1R.png",
   "madara": "https://s4.anilist.co/file/anilistcdn/character/large/b53901-HnRKSoHMG5Vg.png",
+  "megumi": "https://s4.anilist.co/file/anilistcdn/character/large/b126635-L0y3I92JSUkN.png",
   "meruem": "https://s4.anilist.co/file/anilistcdn/character/large/b23277-EYmIxzL64Mji.png",
   "mineta": "https://s4.anilist.co/file/anilistcdn/character/large/b89244-VVwK9loDHeTV.png",
   "mob": "https://s4.anilist.co/file/anilistcdn/character/large/b89616-dXmdOc7L6SDi.png",

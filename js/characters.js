@@ -1,7 +1,8 @@
 // Character roster.
-// stats: [STR, SPD, DUR, IQ, BIQ, ABL, AURA], each rated 1-100.
-// BUM is not a stat: a character placed in BUM scores 100 - (average of all stats),
-// so it is the slot for your weakest draw.
+// stats: [STR, SPD, DUR, IQ, BIQ, ABL, AURA, BUM], each rated 1-100.
+// BUM measures how much of a bum the fandom considers them: pure garbage (Mineta, Yamcha)
+// and heavily slandered "wasted potential" characters (Megumi, Sakura) both rate high,
+// even when their other stats are fine.
 //
 // Images (first one found wins):
 //   1. a local file in /images named after the id (images/jiren.jpg / .png / .webp)
@@ -10,6 +11,9 @@
 //   4. a generated placeholder portrait
 //
 // `search` is the name used to look the character up on AniList, when it differs from `name`.
+// `wiki` is their page title on the series' Fandom wiki (used for the HD images), when it differs from `search`.
+// `wikiImage` picks a specific image file from that wiki instead of the page's main image.
+// `noHd: true` skips the wiki (no good HD art found), so the AniList portrait is used.
 
 window.CATEGORIES = [
   { key: "str",  label: "STRENGTH",   short: "STR" },
@@ -43,57 +47,58 @@ window.SERIES_COLORS = {
 const C = (id, name, series, title, stats, extra = {}) => ({ id, name, series, title, stats, ...extra });
 
 window.CHARACTERS = [
-  //                                                                                   STR  SPD  DUR   IQ  BIQ  ABL AURA
-  C("goku", "Goku", "Dragon Ball Super", "The Saiyan Raised on Earth",                [97,  97,  95,  40,  92,  88,  96], { search: "Son Goku" }),
-  C("vegeta", "Vegeta", "Dragon Ball Super", "Prince of All Saiyans",                 [96,  94,  94,  72,  85,  85,  95]),
-  C("jiren", "Jiren", "Dragon Ball Super", "The Pride of Universe 11",                [97,  96,  98,  55,  88,  60,  90]),
-  C("beerus", "Beerus", "Dragon Ball Super", "God of Destruction",                    [98,  98,  97,  70,  93,  95,  97]),
-  C("frieza", "Frieza", "Dragon Ball Super", "Emperor of the Universe",               [92,  92,  90,  82,  80,  78,  96]),
-  C("gohan", "Gohan", "Dragon Ball Super", "The Hidden Potential",                    [90,  88,  85,  92,  70,  75,  78], { search: "Son Gohan" }),
-  C("krillin", "Krillin", "Dragon Ball Super", "Strongest Human",                     [55,  58,  48,  62,  80,  50,  40]),
-  C("yamcha", "Yamcha", "Dragon Ball Super", "The Desert Bandit",                     [42,  45,  38,  40,  45,  30,  20]),
-  C("mrsatan", "Mr. Satan", "Dragon Ball Super", "World Martial Arts Champion",       [18,  15,  25,  35,  30,   5,  65], { search: "Hercule" }),
-  C("saitama", "Saitama", "One Punch Man", "Hero for Fun",                            [100, 99, 100,  35,  70,  20,  85]),
-  C("garou", "Garou", "One Punch Man", "The Human Monster",                           [93,  92,  94,  65,  97,  70,  90]),
-  C("tatsumaki", "Tatsumaki", "One Punch Man", "Tornado of Terror",                   [25,  85,  40,  70,  78,  97,  85]),
-  C("luffy", "Luffy", "One Piece", "Captain of the Straw Hats",                       [92,  86,  93,  20,  90,  92,  98], { search: "Monkey D. Luffy" }),
-  C("zoro", "Zoro", "One Piece", "The Pirate Hunter",                                 [91,  84,  92,  15,  92,  65,  93], { search: "Zoro Roronoa" }),
-  C("shanks", "Shanks", "One Piece", "The Red-Haired Emperor",                        [90,  86,  87,  80,  97,  88,  99]),
-  C("kaido", "Kaido", "One Piece", "Strongest Creature Alive",                        [97,  75,  99,  45,  82,  85,  92], { search: "Kaidou" }),
-  C("usopp", "Usopp", "One Piece", "King of Snipers",                                 [20,  35,  45,  70,  55,  50,  35]),
-  C("naruto", "Naruto", "Naruto", "The Seventh Hokage",                               [92,  93,  94,  55,  86,  95,  92], { search: "Naruto Uzumaki" }),
-  C("sasuke", "Sasuke", "Naruto", "The Last Uchiha",                                  [88,  94,  85,  85,  92,  96,  93], { search: "Sasuke Uchiha" }),
-  C("madara", "Madara", "Naruto", "Ghost of the Uchiha",                              [93,  92,  94,  90,  98,  99,  99], { search: "Madara Uchiha" }),
-  C("itachi", "Itachi", "Naruto", "The Shadow Who Protected the Leaf",                [55,  85,  45,  98,  97,  92,  96], { search: "Itachi Uchiha" }),
-  C("kakashi", "Kakashi", "Naruto", "The Copy Ninja",                                 [60,  82,  55,  90,  96,  80,  82], { search: "Kakashi Hatake" }),
-  C("shikamaru", "Shikamaru", "Naruto", "The Lazy Genius",                            [25,  40,  30,  95,  85,  50,  55], { search: "Shikamaru Nara" }),
-  C("rocklee", "Rock Lee", "Naruto", "Handsome Devil of the Leaf",                    [80,  90,  72,  40,  80,  25,  70]),
-  C("sakura", "Sakura", "Naruto", "Medical Ninja",                                    [78,  55,  70,  75,  60,  62,  35], { search: "Sakura Haruno" }),
-  C("gojo", "Gojo Satoru", "Jujutsu Kaisen", "The Honored One",                       [80,  97,  82,  90,  90,  99,  99], { search: "Satoru Gojou" }),
-  C("sukuna", "Sukuna", "Jujutsu Kaisen", "King of Curses",                           [92,  93,  92,  92,  98,  99,  98], { search: "Ryoumen Sukuna" }),
-  C("toji", "Toji", "Jujutsu Kaisen", "The Sorcerer Killer",                          [93,  97,  85,  72,  98,  30,  94], { search: "Touji Fushiguro" }),
-  C("yuji", "Yuji Itadori", "Jujutsu Kaisen", "Sukuna's Vessel",                      [90,  85,  88,  45,  82,  65,  72], { search: "Yuuji Itadori" }),
-  C("ichigo", "Ichigo", "Bleach", "Substitute Soul Reaper",                           [88,  92,  85,  45,  82,  88,  90], { search: "Ichigo Kurosaki" }),
-  C("aizen", "Aizen", "Bleach", "The Mastermind",                                     [85,  92,  92,  99,  96,  99,  99], { search: "Sousuke Aizen" }),
-  C("yhwach", "Yhwach", "Bleach", "Father of the Quincy",                             [90,  90,  92,  90,  90,  99,  92]),
-  C("allmight", "All Might", "My Hero Academia", "Symbol of Peace",                   [97,  92,  85,  60,  85,  55,  98], { search: "Toshinori Yagi" }),
-  C("deku", "Deku", "My Hero Academia", "Inheritor of One For All",                   [88,  90,  75,  85,  82,  85,  72], { search: "Izuku Midoriya" }),
-  C("bakugo", "Bakugo", "My Hero Academia", "Explosion Hero",                         [80,  88,  74,  82,  90,  82,  85], { search: "Katsuki Bakugou" }),
-  C("allforone", "All For One", "My Hero Academia", "Symbol of Evil",                 [82,  72,  85,  96,  90,  98,  93]),
-  C("mineta", "Mineta", "My Hero Academia", "Grape Juice",                            [ 8,  15,  15,  35,  25,  30,   3], { search: "Minoru Mineta" }),
-  C("levi", "Levi", "Attack on Titan", "Humanity's Strongest Soldier",                [70,  93,  60,  78,  98,  25,  97]),
-  C("eren", "Eren", "Attack on Titan", "The Attack Titan",                            [82,  60,  90,  72,  70,  92,  85], { search: "Eren Yeager" }),
-  C("gon", "Gon", "Hunter x Hunter", "The Boy from Whale Island",                     [80,  80,  75,  35,  72,  75,  70], { search: "Gon Freecss" }),
-  C("killua", "Killua", "Hunter x Hunter", "Heir of the Zoldyck Family",              [70,  96,  72,  85,  92,  82,  85], { search: "Killua Zoldyck" }),
-  C("meruem", "Meruem", "Hunter x Hunter", "King of the Chimera Ants",                [97,  96,  92,  99,  99,  88,  97]),
-  C("netero", "Netero", "Hunter x Hunter", "Chairman of the Hunter Association",      [82,  98,  60,  90,  98,  85,  94], { search: "Isaac Netero" }),
-  C("tanjiro", "Tanjiro", "Demon Slayer", "The Kind Demon Slayer",                    [68,  78,  70,  62,  80,  72,  72], { search: "Tanjirou Kamado" }),
-  C("muzan", "Muzan", "Demon Slayer", "Progenitor of Demons",                         [82,  90,  99,  82,  68,  90,  90], { search: "Muzan Kibutsuji" }),
-  C("yoriichi", "Yoriichi", "Demon Slayer", "The Strongest Swordsman",                [88,  98,  80,  82,  99,  85,  99], { search: "Yoriichi Tsugikuni" }),
-  C("light", "Light Yagami", "Death Note", "Kira",                                    [10,  15,  10,  97,  55,  80,  92]),
-  C("l", "L", "Death Note", "The World's Greatest Detective",                         [12,  30,  10,  98,  65,  10,  85], { search: "L Lawliet" }),
-  C("mob", "Mob", "Mob Psycho 100", "The Psychic Middle Schooler",                    [20,  55,  40,  50,  55,  98,  88], { search: "Shigeo Kageyama" }),
-  C("ayanokoji", "Ayanokoji", "Classroom of the Elite", "Product of the White Room",  [25,  30,  22,  97,  75,   3,  85], { search: "Kiyotaka Ayanokouji" }),
-  C("lelouch", "Lelouch", "Code Geass", "The Demon Emperor",                          [ 5,  10,   8,  96,  70,  70,  95], { search: "Lelouch Lamperouge" }),
-  C("senku", "Senku", "Dr. Stone", "The Ten Billion Percent Scientist",               [ 5,  12,  10,  97,  40,  15,  55], { search: "Senkuu Ishigami" }),
+  //                                                                                   STR  SPD  DUR   IQ  BIQ  ABL AURA  BUM
+  C("goku", "Goku", "Dragon Ball Super", "The Saiyan Raised on Earth",                [97,  97,  95,  40,  92,  88,  96,  35], { search: "Son Goku", wiki: "Goku" }),
+  C("vegeta", "Vegeta", "Dragon Ball Super", "Prince of All Saiyans",                 [96,  94,  94,  72,  85,  85,  95,  40]),
+  C("jiren", "Jiren", "Dragon Ball Super", "The Pride of Universe 11",                [97,  96,  98,  55,  88,  60,  90,  45]),
+  C("beerus", "Beerus", "Dragon Ball Super", "God of Destruction",                    [98,  98,  97,  70,  93,  95,  97,  20]),
+  C("frieza", "Frieza", "Dragon Ball Super", "Emperor of the Universe",               [92,  92,  90,  82,  80,  78,  96,  35]),
+  C("gohan", "Gohan", "Dragon Ball Super", "The Hidden Potential",                    [90,  88,  85,  92,  70,  75,  78,  70], { search: "Son Gohan", wiki: "Gohan" }),
+  C("krillin", "Krillin", "Dragon Ball Super", "Strongest Human",                     [55,  58,  48,  62,  80,  50,  40,  75], { noHd: true }),
+  C("yamcha", "Yamcha", "Dragon Ball Super", "The Desert Bandit",                     [42,  45,  38,  40,  45,  30,  20,  99]),
+  C("mrsatan", "Mr. Satan", "Dragon Ball Super", "World Martial Arts Champion",       [18,  15,  25,  35,  30,   5,  65,  85], { search: "Hercule", wiki: "Mr. Satan" }),
+  C("saitama", "Saitama", "One Punch Man", "Hero for Fun",                            [100, 99, 100,  35,  70,  20,  85,  10]),
+  C("garou", "Garou", "One Punch Man", "The Human Monster",                           [93,  92,  94,  65,  97,  70,  90,  25], { wikiImage: "Garou Anime Fullbody.png" }),
+  C("tatsumaki", "Tatsumaki", "One Punch Man", "Tornado of Terror",                   [25,  85,  40,  70,  78,  97,  85,  40]),
+  C("luffy", "Luffy", "One Piece", "Captain of the Straw Hats",                       [92,  86,  93,  20,  90,  92,  98,  20], { search: "Monkey D. Luffy", wiki: "Monkey D. Luffy" }),
+  C("zoro", "Zoro", "One Piece", "The Pirate Hunter",                                 [91,  84,  92,  15,  92,  65,  93,  35], { search: "Zoro Roronoa", wiki: "Roronoa Zoro" }),
+  C("shanks", "Shanks", "One Piece", "The Red-Haired Emperor",                        [90,  86,  87,  80,  97,  88,  99,  30]),
+  C("kaido", "Kaido", "One Piece", "Strongest Creature Alive",                        [97,  75,  99,  45,  82,  85,  92,  55], { search: "Kaidou", wiki: "Kaidou" }),
+  C("usopp", "Usopp", "One Piece", "King of Snipers",                                 [20,  35,  45,  70,  55,  50,  35,  80]),
+  C("naruto", "Naruto", "Naruto", "The Seventh Hokage",                               [92,  93,  94,  55,  86,  95,  92,  25], { search: "Naruto Uzumaki", wikiImage: "Naruto Part II.png" }),
+  C("sasuke", "Sasuke", "Naruto", "The Last Uchiha",                                  [88,  94,  85,  85,  92,  96,  93,  70], { search: "Sasuke Uchiha", wikiImage: "Sasuke Part 2.png" }),
+  C("madara", "Madara", "Naruto", "Ghost of the Uchiha",                              [93,  92,  94,  90,  98,  99,  99,  15], { search: "Madara Uchiha", wikiImage: "Madara fullbody.png" }),
+  C("itachi", "Itachi", "Naruto", "The Shadow Who Protected the Leaf",                [55,  85,  45,  98,  97,  92,  96,  15], { search: "Itachi Uchiha", wikiImage: "Itachi.png" }),
+  C("kakashi", "Kakashi", "Naruto", "The Copy Ninja",                                 [60,  82,  55,  90,  96,  80,  82,  45], { search: "Kakashi Hatake", noHd: true }),
+  C("shikamaru", "Shikamaru", "Naruto", "The Lazy Genius",                            [25,  40,  30,  95,  85,  50,  55,  40], { search: "Shikamaru Nara", noHd: true }),
+  C("rocklee", "Rock Lee", "Naruto", "Handsome Devil of the Leaf",                    [80,  90,  72,  40,  80,  25,  70,  45], { noHd: true }),
+  C("sakura", "Sakura", "Naruto", "Medical Ninja",                                    [78,  55,  70,  75,  60,  62,  35,  95], { search: "Sakura Haruno", noHd: true }),
+  C("gojo", "Gojo Satoru", "Jujutsu Kaisen", "The Honored One",                       [80,  97,  82,  90,  90,  99,  99,  55], { search: "Satoru Gojou", wiki: "Satoru Gojo" }),
+  C("sukuna", "Sukuna", "Jujutsu Kaisen", "King of Curses",                           [92,  93,  92,  92,  98,  99,  98,  30], { search: "Ryoumen Sukuna", wiki: "Sukuna" }),
+  C("toji", "Toji", "Jujutsu Kaisen", "The Sorcerer Killer",                          [93,  97,  85,  72,  98,  30,  94,  20], { search: "Touji Fushiguro", wiki: "Toji Fushiguro" }),
+  C("megumi", "Megumi Fushiguro", "Jujutsu Kaisen", "The Potential Man",            [55,  72,  55,  82,  74,  84,  70,  92], { search: "Megumi Fushiguro" }),
+  C("yuji", "Yuji Itadori", "Jujutsu Kaisen", "Sukuna's Vessel",                      [90,  85,  88,  45,  82,  65,  72,  65], { search: "Yuuji Itadori", wiki: "Yuji Itadori" }),
+  C("ichigo", "Ichigo", "Bleach", "Substitute Soul Reaper",                           [88,  92,  85,  45,  82,  88,  90,  50], { search: "Ichigo Kurosaki", wikiImage: "Ep266IchigoKurosaki.png" }),
+  C("aizen", "Aizen", "Bleach", "The Mastermind",                                     [85,  92,  92,  99,  96,  99,  99,  10], { search: "Sousuke Aizen", wiki: "Sōsuke Aizen", wikiImage: "Ep279AizenProfile.png" }),
+  C("yhwach", "Yhwach", "Bleach", "Father of the Quincy",                             [90,  90,  92,  90,  90,  99,  92,  40]),
+  C("allmight", "All Might", "My Hero Academia", "Symbol of Peace",                   [97,  92,  85,  60,  85,  55,  98,  30], { search: "Toshinori Yagi", wiki: "All Might" }),
+  C("deku", "Deku", "My Hero Academia", "Inheritor of One For All",                   [88,  90,  75,  85,  82,  85,  72,  70], { search: "Izuku Midoriya", wikiImage: "Izuku Midoriya Hero Costume Action Pose.png" }),
+  C("bakugo", "Bakugo", "My Hero Academia", "Explosion Hero",                         [80,  88,  74,  82,  90,  82,  85,  40], { search: "Katsuki Bakugou", wiki: "Katsuki Bakugo" }),
+  C("allforone", "All For One", "My Hero Academia", "Symbol of Evil",                 [82,  72,  85,  96,  90,  98,  93,  35]),
+  C("mineta", "Mineta", "My Hero Academia", "Grape Juice",                            [ 8,  15,  15,  35,  25,  30,   3, 100], { search: "Minoru Mineta" }),
+  C("levi", "Levi", "Attack on Titan", "Humanity's Strongest Soldier",                [70,  93,  60,  78,  98,  25,  97,  15], { wiki: "Levi Ackermann" }),
+  C("eren", "Eren", "Attack on Titan", "The Attack Titan",                            [82,  60,  90,  72,  70,  92,  85,  50], { search: "Eren Yeager", noHd: true }),
+  C("gon", "Gon", "Hunter x Hunter", "The Boy from Whale Island",                     [80,  80,  75,  35,  72,  75,  70,  60], { search: "Gon Freecss" }),
+  C("killua", "Killua", "Hunter x Hunter", "Heir of the Zoldyck Family",              [70,  96,  72,  85,  92,  82,  85,  30], { search: "Killua Zoldyck" }),
+  C("meruem", "Meruem", "Hunter x Hunter", "King of the Chimera Ants",                [97,  96,  92,  99,  99,  88,  97,  10]),
+  C("netero", "Netero", "Hunter x Hunter", "Chairman of the Hunter Association",      [82,  98,  60,  90,  98,  85,  94,  20], { search: "Isaac Netero" }),
+  C("tanjiro", "Tanjiro", "Demon Slayer", "The Kind Demon Slayer",                    [68,  78,  70,  62,  80,  72,  72,  45], { search: "Tanjirou Kamado", wiki: "Tanjiro Kamado" }),
+  C("muzan", "Muzan", "Demon Slayer", "Progenitor of Demons",                         [82,  90,  99,  82,  68,  90,  90,  65], { search: "Muzan Kibutsuji" }),
+  C("yoriichi", "Yoriichi", "Demon Slayer", "The Strongest Swordsman",                [88,  98,  80,  82,  99,  85,  99,   5], { search: "Yoriichi Tsugikuni", wikiImage: "Yoriichi colored body 2.png" }),
+  C("light", "Light Yagami", "Death Note", "Kira",                                    [10,  15,  10,  97,  55,  80,  92,  40]),
+  C("l", "L", "Death Note", "The World's Greatest Detective",                         [12,  30,  10,  98,  65,  10,  85,  20], { search: "L Lawliet", wiki: "L Lawliet" }),
+  C("mob", "Mob", "Mob Psycho 100", "The Psychic Middle Schooler",                    [20,  55,  40,  50,  55,  98,  88,  20], { search: "Shigeo Kageyama" }),
+  C("ayanokoji", "Ayanokoji", "Classroom of the Elite", "Product of the White Room",  [25,  30,  22,  97,  75,   3,  85,  10], { search: "Kiyotaka Ayanokouji", wiki: "Kiyotaka Ayanokōji" }),
+  C("lelouch", "Lelouch", "Code Geass", "The Demon Emperor",                          [ 5,  10,   8,  96,  70,  70,  95,  25], { search: "Lelouch Lamperouge", wikiImage: "Lelouch3.png" }),
+  C("senku", "Senku", "Dr. Stone", "The Ten Billion Percent Scientist",               [ 5,  12,  10,  97,  40,  15,  55,  30], { search: "Senkuu Ishigami", wiki: "Senku Ishigami" }),
 ];

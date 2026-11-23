@@ -6,7 +6,7 @@
 //
 // Which effect a character gets:
 //   1. SPECIAL[id] if they have a signature effect (Madara's Sharingan, Gojo's Infinite Void...)
-//   2. otherwise the "bum" effect if they are bad at everything (average < 40)
+//   2. otherwise the "bum" effect if their BUM rating is 85+ (Mineta, Yamcha, Megumi...)
 //   3. otherwise a GENERAL effect for their best stat, if it is 80+
 //      (IQ -> floating equations, Speed -> speed lines, Strength -> ground cracks...)
 //
@@ -866,10 +866,10 @@ window.FX = (() => {
   const STAT_KEYS = ["str", "spd", "dur", "iq", "biq", "abl", "aura"];
   function effectFor(c) {
     if (SPECIAL[c.id]) return SPECIAL[c.id]();
-    const avg = c.stats.reduce((a, b) => a + b, 0) / c.stats.length;
-    if (avg < 40) return GENERAL.bum(c);
-    const top = c.stats.indexOf(Math.max(...c.stats));
-    if (c.stats[top] >= 80) return GENERAL[STAT_KEYS[top]](c);
+    if (c.stats[7] >= 85) return GENERAL.bum(c);
+    const main = c.stats.slice(0, 7);
+    const top = main.indexOf(Math.max(...main));
+    if (main[top] >= 80) return GENERAL[STAT_KEYS[top]](c);
     return { name: null, layers: [glow(seriesColor(c), 0.35)] };
   }
 

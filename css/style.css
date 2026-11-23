@@ -220,7 +220,9 @@ body.shake { animation: shake .09s linear infinite; }
 .clash-cat { font-size: 46px; font-weight: 700; color: var(--gold); line-height: 1.05; text-shadow: 0 0 18px rgba(255,209,102,.5); }
 .clash-score { font-size: 20px; display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 4px; }
 .clash-score b { font-size: 30px; min-width: 24px; }
-.clash-score i { color: var(--muted); font-style: normal; }
+.clash-score i { color: var(--muted); font-style: normal; font-size: 11px; letter-spacing: .12em; }
+.clash-score b { min-width: 52px; font-variant-numeric: tabular-nums; transition: color .3s, text-shadow .3s; }
+.clash-score b.lead { color: var(--gold); text-shadow: 0 0 14px rgba(255,209,102,.6); }
 .clash-score span:first-child { color: var(--blue); }
 .clash-score span:last-child { color: var(--red); }
 .arena { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5vw; min-height: 0; }
@@ -271,13 +273,22 @@ body.shake { animation: shake .09s linear infinite; }
 .results-table .won .pts { background: #1d6b3d; }
 .results-table tfoot td { font-size: 22px; font-weight: 700; border-top: 2px solid #fff; }
 
+/* Touch screens: no keyboard hint */
+@media (pointer: coarse) { .reveal-help .keys { display: none; } }
+
 /* Phones / narrow screens */
 @media (max-width: 860px) and (orientation: portrait) {
-  .hero { position: absolute; top: 120px; bottom: auto; height: calc(78vh - 120px); width: 100vw;
+  .hero { position: absolute; top: 120px; bottom: auto; height: calc(63vh - 120px); width: 100vw;
     -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent); mask-image: linear-gradient(to bottom, #000 70%, transparent); }
   .hero img { object-fit: cover; object-position: center top; }
-  .hero-anchor { position: absolute; top: 140px; height: 42vh; }
-  .center { min-height: calc(78vh - 16px); }
+  .hero-anchor { position: absolute; top: 132px; height: 34vh; }
+  .center { min-height: calc(63vh - 16px); }
+  .you .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .you .slot { height: 44px; font-size: 14px; padding: 0 10px 0 20px; }
+  .you .slot::before { left: 8px; width: 4px; }
+  .you .slot .state { font-size: 10px; max-width: 48%; }
+  .board-name { font-size: 20px; margin: 0 0 6px; }
+  #game.screen { gap: 10px; }
   body.pool-phase .center { min-height: 0; }
   .clash-cat { font-size: 32px; }
   .arena { gap: 10px; }
@@ -290,7 +301,9 @@ body.shake { animation: shake .09s linear infinite; }
   #game.screen { position: relative; inset: auto; min-height: 100%; display: flex; flex-direction: column; padding: 150px 16px 80px; gap: 16px; }
   .center { order: -1; }
   .reveal { position: static; margin-top: auto; }
-  .reveal-name { font-size: 48px; }
+  .reveal-name { font-size: 44px; }
+  .reveal-who { display: none; }
+  .reveal { text-shadow: 0 2px 6px #000, 0 0 18px rgba(0,0,0,.85); }
   .reveal-title { font-size: 22px; }
   .board.opp { text-align: left; }
   .opp .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -307,16 +320,19 @@ body.shake { animation: shake .09s linear infinite; }
 
 /* Phones held sideways and other short screens: keep the side-by-side layout, just tighter */
 @media (max-height: 520px) and (orientation: landscape) {
-  #game { grid-template-columns: minmax(150px, 250px) 1fr minmax(120px, 200px); padding: 58px 3vw 6px; gap: 12px; }
-  .status-card { top: 6px; padding: 4px 14px 5px; width: min(300px, 40vw); }
+  #game { grid-template-columns: minmax(128px, 205px) 1fr minmax(104px, 165px); padding: 50px 2.5vw 6px; gap: 10px; }
+  .status-card { top: 5px; padding: 3px 12px 4px; width: min(230px, 30vw); background: rgba(22,24,30,.6); }
+  .slot { background: rgba(22,24,30,.5); }
+  .reveal-who { display: none; }
+  .reveal { text-shadow: 0 2px 6px #000, 0 0 16px rgba(0,0,0,.8); }
   .fs-btn { top: 6px; right: 8px; width: 32px; height: 32px; }
   .status-card .eyebrow { display: none; }
-  .status-title { font-size: 16px; }
+  .status-title { font-size: 14px; }
   .pick { font-size: 9px; margin: 0 0 3px; }
   .timer .bar { height: 6px; }
   #timerNum { font-size: 12px; }
   .board-eyebrow { font-size: 10px; }
-  .board-name { font-size: 16px; margin: 0 0 4px; }
+  .board-name { font-size: 14px; margin: 0 0 3px; }
   .slots { gap: 4px; }
   .slot, .opp .slot { height: calc((100vh - 150px) / 8 - 4px); min-height: 22px; font-size: 13px; border-width: 2px; padding-left: 20px; }
   .slot::before { left: 7px; width: 4px; }
@@ -325,8 +341,8 @@ body.shake { animation: shake .09s linear infinite; }
   .slot .key { display: none; }
   .reveal-who { font-size: 12px; }
   .reveal-fx { font-size: 10px; margin: 0; }
-  .reveal-title { font-size: 15px; }
-  .reveal-name { font-size: 34px; }
+  .reveal-title { font-size: 13px; }
+  .reveal-name { font-size: 30px; }
   .reveal-series { font-size: 11px; }
   .reveal-q { font-size: 13px; }
   .reveal-help { font-size: 9px; margin-top: 2px; }

@@ -352,9 +352,10 @@
     return new Promise((res) => {
       if (skipping) { el.textContent = to; return res(); }
       const t0 = performance.now();
+      const from = parseInt(el.textContent, 10) || 0; // counts on from the number already shown
       const step = (now) => {
         const k = Math.min(1, (now - t0) / ms);
-        el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
+        el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
         if (k < 1 && !skipping) requestAnimationFrame(step);
         else { el.textContent = to; res(); }
       };
@@ -374,7 +375,7 @@
     $("csOpp").textContent = "0";
     $("clashBanner").classList.add("hidden");
     const fy = $("fcYou"), fo = $("fcOpp");
-    const wins = { you: 0, opp: 0 };
+    const power = { you: 0, opp: 0 };
 
     for (let i = 0; i < CATS.length && !skipping; i++) {
       const cat = CATS[i];
@@ -409,11 +410,14 @@
       } else {
         const [w, l, wc] = sa > sb ? [fy, fo, a] : [fo, fy, b];
         w.classList.add("win"); l.classList.add("lose");
-        wins[sa > sb ? "you" : "opp"]++;
         if (!skipping) FX.play(wc, w.querySelector(".fimg"));
       }
-      $("csYou").textContent = wins.you;
-      $("csOpp").textContent = wins.opp;
+      power.you += sa; power.opp += sb;
+      const lead = power.you === power.opp ? "" : power.you > power.opp ? "you" : "opp";
+      countUp($("csYou"), power.you, 600);
+      countUp($("csOpp"), power.opp, 600);
+      $("csYou").className = lead === "you" ? "lead" : "";
+      $("csOpp").className = lead === "opp" ? "lead" : "";
       await wait(1900);
     }
 
@@ -439,10 +443,10 @@
     });
     return t;
   }
-  // Most clashes won; total stat points break a tie.
+  // Highest total power wins; clashes won break an exact tie.
   function outcome(t) {
-    if (t.youWins !== t.oppWins) return t.youWins > t.oppWins ? "win" : "lose";
     if (t.youPts !== t.oppPts) return t.youPts > t.oppPts ? "win" : "lose";
+    if (t.youWins !== t.oppWins) return t.youWins > t.oppWins ? "win" : "lose";
     return "draw";
   }
 
@@ -477,7 +481,7 @@
     title.className = r === "win" ? "win" : r === "draw" ? "" : "lose";
     $("resultSub").textContent = forfeited
       ? ""
-      : `Clashes won ${t.youWins} - ${t.oppWins}` + (t.youWins === t.oppWins ? ` · tiebreak on total power ${t.youPts} - ${t.oppPts}` : "");
+      : `Total power ${t.youPts} - ${t.oppPts} · clashes won ${t.youWins} - ${t.oppWins}` + (t.youPts === t.oppPts ? " (tiebreak)" : "");
     state.turn = "done";
     setPoolPhase(false);
     show("results");

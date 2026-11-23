@@ -28,7 +28,7 @@
       <div class="eyebrow">THE DRAFT</div>
       <h1>ANIME DRAFT</h1>
       <p>Put each character in the category where they're <b>strongest</b>. Fill all 8 slots, then your cards
-        <b>clash</b> one-on-one against your opponent's. Win the most clashes to win the match.</p>
+        <b>clash</b> one-on-one against your opponent's. The highest <b>total power</b> wins the match.</p>
       <p class="small">Stats (1-100) stay hidden until the clash. <b>BUM</b> is its own rating: pure garbage (Mineta) and slandered "potential men" (Megumi) both score big there.</p>
       <div class="modes" role="radiogroup" aria-label="Game mode">
         <label class="mode"><input type="radio" name="mode" id="modeStandard" value="standard" checked />
@@ -66,7 +66,7 @@
         <div class="reveal-name" id="revealName"></div>
         <div class="reveal-series" id="revealSeries"></div>
         <div class="reveal-q" id="revealQ"></div>
-        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - win the most clashes / keys 1 - 8</div>
+        <div class="reveal-help" id="revealHelp">Put them where they're STRONGEST - the highest total wins<span class="keys"> / keys 1 - 8</span></div>
       </div>
     </div>
 
@@ -85,7 +85,7 @@
       <div class="eyebrow gold">THE CLASH</div>
       <div class="clash-round" id="clashRound">ROUND 1 / 8</div>
       <div class="clash-cat" id="clashCat">STRENGTH</div>
-      <div class="clash-score"><span id="csYouName">YOU</span><b id="csYou">0</b><i>-</i><b id="csOpp">0</b><span id="csOppName">OPP</span></div>
+      <div class="clash-score" aria-label="Total power"><span id="csYouName">YOU</span><b id="csYou">0</b><i>TOTAL POWER</i><b id="csOpp">0</b><span id="csOppName">OPP</span></div>
     </div>
     <div class="arena">
       <div class="fcard left" id="fcYou">

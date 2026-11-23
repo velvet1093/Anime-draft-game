@@ -1,6 +1,6 @@
 # Anime Draft
 
-A browser draft game. Each turn you draw a random anime character and slot them into one of 8 categories: Strength, Speed, Durability, IQ, Battle IQ, Abilities, Bum and Aura. A bot opponent drafts alongside you. When all 16 picks are made, the cards **clash** one-on-one in each category (your Strength card against theirs, and so on). Whoever wins more clashes wins the match. If clashes are tied, total stat points decide it.
+A browser draft game. Each turn you draw a random anime character and slot them into one of 8 categories: Strength, Speed, Durability, IQ, Battle IQ, Abilities, Bum and Aura. A bot opponent drafts alongside you. When all 16 picks are made, the cards **clash** one-on-one in each category (your Strength card against theirs, and so on). The highest total power (the sum of your 8 slot ratings) wins the match. Clashes won only break an exact tie.
 
 ## Play
 

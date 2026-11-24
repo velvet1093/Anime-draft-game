@@ -115,6 +115,47 @@ body.shake { animation: shake .09s linear infinite; }
 .unlock-all { padding: 8px 16px; font-size: 14px; }
 .unlock-all[aria-pressed="true"] { background: rgba(255,209,102,.15); border-color: var(--gold); color: #ffe8a3; }
 .codex-note[hidden] { display: none; }
+
+/* Ban phase */
+.bans-check { font-size: 14px; color: #ddd; }
+.bans-check input { accent-color: #ff8fab; margin-right: 6px; }
+.ban-bar { width: 100%; max-width: 660px; padding: 4px 4px 8px; }
+.ban-bar[hidden] { display: none; }
+.ban-bar input { width: 100%; font-family: inherit; font-size: 15px; padding: 8px 12px; color: #fff; background: #12141a; border: 1px solid #555; border-radius: 8px; }
+.pc .tag.ban { background: #6b0f0f; }
+.pc.banned { filter: grayscale(1) brightness(.35); }
+.pc.banned::after { content: "✕"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 46px; color: rgba(255,70,70,.9); }
+
+/* Aizen's illusion breaking in the clash */
+.fcard.shatter .fimg { animation: shatter .9s ease; }
+@keyframes shatter {
+  0% { filter: none; } 20% { filter: brightness(3) contrast(.6); transform: scale(1.06) rotate(-2deg); }
+  40% { filter: brightness(1.6) hue-rotate(60deg); transform: scale(.97) rotate(2deg); } 100% { filter: none; transform: none; }
+}
+.slot .state small { font-size: 9px; color: #c8a2ff; font-weight: 400; }
+
+/* Toasts */
+.toast {
+  position: fixed; z-index: 40; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px);
+  max-width: min(520px, calc(100vw - 32px)); padding: 10px 18px; border-radius: 10px; text-align: center;
+  background: rgba(16, 18, 24, .94); border: 2px solid rgba(255,255,255,.6); font-size: 16px; letter-spacing: .03em;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.ach { border-color: var(--gold); color: #ffe8a3; box-shadow: 0 0 24px rgba(255,209,102,.4); }
+
+/* Achievements list */
+.ach-card {
+  position: relative; width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 22px;
+  background: #15171f; border: 2px solid var(--line); border-radius: 14px;
+}
+.ach-card h2 { margin: 0; font-size: 30px; letter-spacing: .04em; }
+.ach-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.ach-list li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.05); opacity: .55; }
+.ach-list li.got { opacity: 1; background: rgba(255,209,102,.1); border: 1px solid rgba(255,209,102,.35); }
+.ach-list b { display: block; font-size: 16px; letter-spacing: .02em; }
+.ach-list span:not(.ach-icon) { font-family: Arial, sans-serif; font-size: 13px; color: #ccc; }
+.ach-icon { font-size: 22px; }
 .reroll.used { opacity: .25; }
 .pool-grid.reshuffle .pc { animation: reshuffle .45s ease; }
 @keyframes reshuffle { 0% { transform: rotateY(90deg) scale(.8); opacity: 0; } 100% { transform: none; opacity: 1; } }
@@ -278,7 +319,7 @@ body.beauty .clash-cat { color: #ffb3c7; text-shadow: 0 0 18px rgba(255,143,171,
 .forfeit { position: fixed; left: 6vw; bottom: 22px; padding: 8px 40px; font-size: 15px; }
 
 /* Pool draft grid */
-.pool { position: absolute; inset: 24px 0 0; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+.pool { position: absolute; inset: 24px 0 0; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
 .pool-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 660px; padding: 4px; }
 .pc {
   position: relative; aspect-ratio: 3 / 4; padding: 0; border-radius: 8px; overflow: hidden; background: #111;
@@ -425,6 +466,7 @@ body.beauty .clash-cat { color: #ffb3c7; text-shadow: 0 0 18px rgba(255,143,171,
   #game.screen { padding-top: 16px; }
   .forfeit { position: static; align-self: flex-start; }
   .pool { position: static; }
+  .toast { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
   .pool-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
   .modes { grid-template-columns: 1fr 1fr; gap: 8px; }
   .modes.three { grid-template-columns: repeat(3, 1fr); }
@@ -491,6 +533,8 @@ body.beauty .clash-cat { color: #ffb3c7; text-shadow: 0 0 18px rgba(255,143,171,
   .modes { margin: 8px 0 0; }
   .mode { padding: 6px 10px; }
   .mode span, .start-card .small, .start-card .eyebrow, .start-card p { display: none; }
+  .bans-check { margin: 6px 0; font-size: 12px; }
+  .toast { bottom: 44px; font-size: 13px; padding: 6px 12px; }
   .mode { align-items: center; justify-content: center; }
   .mode b { font-size: 14px; }
   .field-label { margin: 8px 0 -4px; font-size: 10px; }

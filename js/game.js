@@ -122,11 +122,25 @@
     const shuffled = shuffle(roster);
     SFX.unlock();
     SFX.music(contest === "beauty" ? "beauty" : "draft");
+    const pool = mode === "pool" ? shuffled.slice(0, POOL_SIZE) : [];
+    // Kyōka Suigetsu: Aizen looks like a random bum to everyone except whoever drafted him. Pick that bum now
+    // (one that isn't on the table, so there are never two of the same card in view).
+    const bums = roster.filter((c) => c.stats[7] >= 85 && c.id !== "aizen" && !pool.includes(c));
+    const disguise = roster.some((c) => c.id === "aizen") && bums.length ? bums[Math.floor(Math.random() * bums.length)] : null;
     state = {
       mode,
+      gameMode,
+      contestants: checked("contestants"),
+      roster,
+      disguise,
+      illusionBroken: false,
+      phase: $("bansToggle").checked ? "ban" : "draft",
+      banOrder: ["you", "opp", "you", "opp"],
+      banIdx: 0,
+      banned: new Set(),
       // Standard draws pop from the end of the deck (the rest is spare for a reroll); Pool Draft lays out the first 30.
-      deck: mode === "pool" ? [] : shuffled,
-      pool: mode === "pool" ? shuffled.slice(0, POOL_SIZE) : [],
+      deck: mode === "pool" ? [] : shuffled.filter((c) => c !== disguise),
+      pool,
       rerolls: mode === "pool" ? 0 : 1, // Pool Draft has no reroll
       taken: {},
       pick: 0,
@@ -142,9 +156,116 @@
     $("rerollBtn").hidden = mode === "pool";
     $("youName").textContent = state.youName;
     $("oppName").textContent = state.oppName;
+    // Test helper: index.html#test-aizen (opponent gets Aizen first) or #test-aizen-you (you do).
+    const forced = location.hash.match(/^#test-aizen(-you)?$/);
+    if (forced && mode === "standard" && state.disguise) {
+      const az = roster.find(isAizen);
+      state.deck = state.deck.filter((c) => c !== az).concat(az);
+      state.turn = forced[1] ? "you" : "opp";
+    }
+    $("banSearch").value = "";
     show("game");
     renderBoards();
+    if (state.phase === "ban") startBans(); else nextTurn();
+  }
+
+  // ---------- Aizen's Kyōka Suigetsu ----------
+  const isAizen = (c) => !!c && c.id === "aizen";
+  // What the player sees for card c. owner: "you", "opp", or null while it's still on the table.
+  // Until the clash breaks the illusion, Aizen shows as the disguise unless he's yours.
+  function view(c, owner) {
+    return isAizen(c) && state && state.disguise && owner !== "you" && !state.illusionBroken ? state.disguise : c;
+  }
+
+  // ---------- ban phase ----------
+  // Before the draft each player bans 2. Pool Draft bans from the table; Standard bans from the whole roster.
+  const banTurn = () => state.banOrder[state.banIdx];
+  function startBans() {
+    setPoolPhase(true);
+    $("banBar").hidden = state.mode === "pool";
+    nextBan();
+  }
+  function nextBan() {
+    if (state.banIdx >= state.banOrder.length) return endBans();
+    const yours = banTurn() === "you";
+    state.busy = !yours;
+    setStatus(yours, yours ? "BAN A CHARACTER" : "OPPONENT IS BANNING", `BAN ${state.banIdx + 1} / ${state.banOrder.length}`);
+    renderPool();
+    startTimer();
+    if (!yours) setTimeout(botBan, 1000 + Math.random() * 900);
+  }
+  function banCandidates() {
+    if (state.mode === "pool") return state.pool;
+    const q = $("banSearch").value.trim().toLowerCase();
+    return state.roster
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.series.toLowerCase().includes(q))
+      .slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function doBan(c, side) {
+    state.banned.add(c.id);
+    if (state.mode === "pool") state.taken[c.id] = "ban";
+    state.banBy = state.banBy || {};
+    state.banBy[c.id] = side;
+    SFX.place();
+    if (side === "you") {
+      if (c.id === "gojo") unlockAch("hater");
+      if (isAizen(c) && state.mode === "pool" && state.disguise) { toast(`You banned ${state.disguise.name}... it was Aizen all along!`); unlockAch("seethrough"); }
+      else toast(`You banned ${c.name}`);
+    } else {
+      toast(`${state.oppName} banned ${view(c, null).name}`);
+    }
+    clearInterval(timerHandle);
+    state.banIdx++;
+    state.busy = true;
+    renderPool();
+    setTimeout(nextBan, 650);
+  }
+  function playerBan(c) {
+    if (!state || state.phase !== "ban" || banTurn() !== "you" || state.busy || state.banned.has(c.id)) return;
+    doBan(c, "you");
+  }
+  // The bot bans one of the strongest-looking characters (it falls for Aizen's disguise too).
+  function botBan() {
+    if (!state || state.phase !== "ban" || banTurn() !== "opp") return;
+    const left = (state.mode === "pool" ? state.pool : state.roster).filter((c) => !state.banned.has(c.id));
+    const worth = (c) => CATS.reduce((sum, cat) => sum + score(view(c, null), cat.key), 0);
+    const top = left.slice().sort((a, b) => worth(b) - worth(a)).slice(0, 6);
+    const c = top[Math.floor(Math.random() * top.length)];
+    renderPool(c.id);
+    setTimeout(() => doBan(c, "opp"), 650);
+  }
+  function endBans() {
+    state.phase = "draft";
+    $("banBar").hidden = true;
+    if (state.banned.has("aizen")) state.disguise = null;
+    // If his disguise got banned, Aizen picks a new one (seeing a banned bum on the board would give him away).
+    else if (state.disguise && state.banned.has(state.disguise.id)) {
+      const onTable = new Set(state.pool.map((c) => c.id));
+      const bums = state.roster.filter((c) => c.stats[7] >= 85 && !isAizen(c) && !state.banned.has(c.id) && !onTable.has(c.id));
+      state.disguise = bums.length ? bums[Math.floor(Math.random() * bums.length)] : null;
+    }
+    if (state.disguise) state.deck = state.deck.filter((c) => c !== state.disguise);
+    state.deck = state.deck.filter((c) => !state.banned.has(c.id));
+    state.busy = false;
     nextTurn();
+  }
+
+  // ---------- toasts ----------
+  const toastQueue = [];
+  function toast(msg, kind) {
+    toastQueue.push({ msg, kind });
+    if (toastQueue.length === 1) showToast();
+  }
+  function showToast() {
+    const t = toastQueue[0];
+    if (!t) return;
+    const el = $("toast");
+    el.textContent = t.msg;
+    el.className = "toast show" + (t.kind ? " " + t.kind : "");
+    setTimeout(() => {
+      el.className = "toast";
+      setTimeout(() => { toastQueue.shift(); showToast(); }, 250);
+    }, t.kind === "ach" ? 2600 : 1600);
   }
 
   function show(screen) {
@@ -163,7 +284,8 @@
       const el = document.createElement("div");
       el.className = "slot " + (c ? "filled" : "open") + (state.turn === "you" && state.current && !c && !state.busy ? " active" : "");
       if (flash === "you:" + cat.key) el.classList.add("flash");
-      el.innerHTML = `<span class="key">${i + 1}</span><span>${cat.label}</span><span class="state">${c ? c.name.toUpperCase() : "OPEN"}</span>`;
+      const note = isAizen(c) && state.disguise && !state.illusionBroken ? ` <small title="What your opponent sees">(AS ${state.disguise.name.toUpperCase()})</small>` : "";
+      el.innerHTML = `<span class="key">${i + 1}</span><span>${cat.label}</span><span class="state">${c ? c.name.toUpperCase() + note : "OPEN"}</span>`;
       if (!c) el.addEventListener("click", () => playerPlace(cat.key));
       you.appendChild(el);
     });
@@ -175,7 +297,7 @@
       const el = document.createElement("div");
       el.className = "slot " + (c ? "filled" : "open");
       if (flash === "opp:" + cat.key) el.classList.add("flash");
-      el.innerHTML = `<span>${cat.short}</span><span class="state">${c ? c.name.toUpperCase() : "OPEN"}</span>`;
+      el.innerHTML = `<span>${cat.short}</span><span class="state">${c ? view(c, "opp").name.toUpperCase() : "OPEN"}</span>`;
       opp.appendChild(el);
     });
     updateReroll();
@@ -198,16 +320,17 @@
     state.rerolls--;
     SFX.reroll();
     state.current = state.deck.pop();
+    if (contest === "battle" && state.current.stats[6] >= 95) unlockAch("lucky");
     renderReveal(state.current, "you");
     renderBoards();
     startTimer();
     updateReroll();
   }
 
-  function setStatus(yours, title) {
+  function setStatus(yours, title, label) {
     $("statusTitle").textContent = title;
     document.querySelector(".status-card").classList.toggle("opp-turn", !yours);
-    $("pickLabel").textContent = `PICK ${String(state.pick).padStart(2, "0")} / ${TOTAL_PICKS}`;
+    $("pickLabel").textContent = label || `PICK ${String(state.pick).padStart(2, "0")} / ${TOTAL_PICKS}`;
   }
 
   function setPoolPhase(on) {
@@ -217,12 +340,16 @@
     if (on) { $("hero").classList.add("hidden"); FX.stop(); shownId = null; }
   }
 
-  function renderReveal(c, who) {
+  function renderReveal(real, who) {
     const yours = who === "you";
     const pool = state.mode === "pool";
+    const c = view(real, who); // the opponent's Aizen shows up as his disguise
     setPoolPhase(false);
     setStatus(yours, yours ? (pool ? "YOUR PICK" : "YOUR DRAW") : pool ? "OPPONENT'S PICK" : "OPPONENT'S DRAW");
     $("revealWho").textContent = yours ? (pool ? "YOU PICKED" : "YOUR DRAW") : `${state.oppName} ${pool ? "PICKED" : "DRAWS"}`;
+    if (yours && isAizen(real) && state.disguise) {
+      $("revealWho").textContent = pool ? `THAT ${state.disguise.name.toUpperCase()} WAS AIZEN` : `YOUR OPPONENT SEES ${state.disguise.name.toUpperCase()}`;
+    }
     $("revealTitle").textContent = c.title;
     $("revealName").textContent = c.name;
     $("revealSeries").textContent = c.series;
@@ -237,22 +364,32 @@
   }
 
   // ---------- pool draft ----------
+  // The grid in the middle: the Pool Draft table, or the ban list during the ban phase.
   function renderPool(chosenId) {
     const grid = $("poolGrid");
     grid.innerHTML = "";
-    const canPick = state.turn === "you" && !state.current && !state.busy;
-    state.pool.forEach((c) => {
-      const owner = state.taken[c.id];
+    const banning = state.phase === "ban";
+    const canPick = banning ? banTurn() === "you" && !state.busy : state.turn === "you" && !state.current && !state.busy;
+    const list = banning ? banCandidates() : state.pool;
+    list.forEach((real) => {
+      const banned = state.banned.has(real.id);
+      const owner = banned ? "ban" : state.taken[real.id];
+      // On the table nobody owns Aizen yet, so he stays disguised; once taken, only his owner sees him.
+      // (The full-roster ban list in Standard shows everyone as they are.)
+      const ownerView = owner === "you" ? "you" : owner === "ban" ? (state.banBy && state.banBy[real.id] === "you" ? "you" : null) : owner === "opp" ? "opp" : null;
+      const c = state.mode === "pool" ? view(real, ownerView) : real;
       const el = document.createElement("button");
       el.type = "button";
-      el.className = "pc" + (owner ? " taken" : canPick ? " can" : "") + (c.id === chosenId ? " chosen" : "");
+      el.className = "pc" + (owner ? " taken" : canPick ? " can" : "") + (real.id === chosenId ? " chosen" : "") + (banned ? " banned" : "");
       el.disabled = !!owner || !canPick;
       el.style.setProperty("--card-glow", seriesColor(c));
-      el.innerHTML = `<img alt="" /><span class="pn">${c.name}</span>` + (owner ? `<span class="tag ${owner}">${owner === "you" ? "YOU" : "OPP"}</span>` : "");
+      const tag = owner ? `<span class="tag ${owner}">${owner === "you" ? "YOU" : owner === "opp" ? "OPP" : "BANNED"}</span>` : "";
+      el.innerHTML = `<img alt="" loading="lazy" /><span class="pn">${c.name}</span>` + tag;
       findImage(c).then((img) => (el.querySelector("img").src = img.url));
-      if (!owner) el.addEventListener("click", () => playerPoolPick(c));
+      if (!owner) el.addEventListener("click", () => (banning ? playerBan(real) : playerPoolPick(real)));
       grid.appendChild(el);
     });
+    if (banning && !list.length) grid.innerHTML = `<p class="codex-empty">No characters match that search.</p>`;
     updateReroll();
   }
 
@@ -284,7 +421,7 @@
       if (state.taken[c.id]) return;
       CATS.forEach((cat) => {
         if (state.opp[cat.key]) return;
-        const v = score(c, cat.key) - rosterMean[cat.key] + (Math.random() - 0.5) * 16;
+        const v = score(view(c, null), cat.key) - rosterMean[cat.key] + (Math.random() - 0.5) * 16;
         if (v > bestVal) { bestVal = v; best = c; }
       });
     });
@@ -332,12 +469,20 @@
     const tick = () => {
       const left = Math.max(0, end - Date.now());
       const sec = Math.ceil(left / 1000);
-      if (sec !== lastSec) { lastSec = sec; if (sec <= 5 && sec > 0 && state.turn === "you") SFX.tick(); }
+      const mine = state.phase === "ban" ? banTurn() === "you" : state.turn === "you";
+      if (sec !== lastSec) { lastSec = sec; if (sec <= 5 && sec > 0 && mine) SFX.tick(); }
       $("timerBar").style.width = (left / (TURN_SECONDS * 1000)) * 100 + "%";
       $("timerBar").classList.toggle("low", left < 5000);
       $("timerNum").textContent = Math.ceil(left / 1000);
       if (left <= 0) {
         clearInterval(timerHandle);
+        if (state.phase === "ban") {
+          if (banTurn() === "you") {
+            const left = banCandidates().filter((c) => !state.banned.has(c.id));
+            if (left.length) doBan(left[Math.floor(Math.random() * left.length)], "you");
+          }
+          return;
+        }
         if (state.turn === "you") {
           // Out of time: random pick (pool mode) and a random open slot.
           if (state.mode === "pool" && !state.current) {
@@ -408,6 +553,15 @@
     el.style.setProperty("--card-glow", seriesColor(c));
   }
 
+  // Swap a card in place (keeps its position and classes): used when Aizen's illusion breaks.
+  function swapFighter(el, c, img) {
+    el.querySelector("img").src = img.url;
+    el.querySelector(".fname").textContent = c.name;
+    const fx = FX.nameFor(c);
+    el.querySelector(".ffx").textContent = fx ? `✦ ${fx} ✦` : "";
+    el.style.setProperty("--card-glow", seriesColor(c));
+  }
+
   function countUp(el, to, ms) {
     return new Promise((res) => {
       if (skipping) { el.textContent = to; return res(); }
@@ -446,14 +600,27 @@
       $("clashRound").textContent = `ROUND ${i + 1} / ${CATS.length}`;
       $("clashCat").textContent = cat.label;
       $("clashVs").className = "vs";
-      setFighter(fy, a, cat.key, ia);
-      setFighter(fo, b, cat.key, ib);
+      // Aizen enters as the bum everyone thought he was, then the illusion breaks.
+      const hidden = (c) => isAizen(c) && state.disguise;
+      setFighter(fy, hidden(a) ? state.disguise : a, cat.key, hidden(a) ? await findImage(state.disguise) : ia);
+      setFighter(fo, hidden(b) ? state.disguise : b, cat.key, hidden(b) ? await findImage(state.disguise) : ib);
       void fy.offsetWidth;
 
       // Slide in.
       fy.classList.remove("offstage"); fo.classList.remove("offstage");
       if (!skipping) SFX.whoosh();
       await wait(550);
+      for (const [el, c, img] of [[fy, a, ia], [fo, b, ib]]) {
+        if (!hidden(c)) continue;
+        $("clashCat").textContent = "KYŌKA SUIGETSU";
+        if (!skipping) { FX.play(c, el.querySelector(".fimg")); el.classList.add("shatter"); }
+        await wait(300);
+        swapFighter(el, c, img);
+        await wait(900);
+        el.classList.remove("shatter");
+        $("clashCat").textContent = cat.label;
+        if (!skipping) FX.stop();
+      }
       // Reveal the stats.
       await Promise.all([countUp(fy.querySelector(".fnum"), sa, 800), countUp(fo.querySelector(".fnum"), sb, 800)]);
       markSeen(a); markSeen(b);
@@ -466,6 +633,7 @@
       fy.classList.remove("charge"); fo.classList.remove("charge");
       $("clashVs").className = "vs hit";
 
+      if (isAizen(b) && state.disguise && sb > sa) unlockAch("played");
       if (sa === sb) {
         fy.classList.add("tie"); fo.classList.add("tie");
       } else {
@@ -522,6 +690,7 @@
 
   function finishDraft() {
     clearInterval(timerHandle);
+    $("banBar").hidden = true;
     setPoolPhase(false);
     state.turn = "clash";
     runClash();
@@ -556,8 +725,10 @@
       ? ""
       : `${contest === "beauty" ? "Total score" : "Total power"} ${t.youPts} - ${t.oppPts} · ${contest === "beauty" ? "rounds" : "clashes"} won ${t.youWins} - ${t.oppWins}` + (t.youPts === t.oppPts ? " (tiebreak)" : "");
     state.turn = "done";
+    state.illusionBroken = true;
     setPoolPhase(false);
     show("results");
+    if (!forfeited) checkMatchAchievements(r, t);
   }
 
   // ---------- stat unlocks (remembered in this browser) ----------
@@ -575,6 +746,7 @@
     if (set.has(c.id)) return;
     set.add(c.id);
     try { localStorage.setItem("ad-seen", JSON.stringify({ b: [...seen.b], l: [...seen.l] })); } catch (e) { /* storage blocked */ }
+    if (set === seen.b) checkCollectorAchievements();
   }
 
   // ---------- character index ----------
@@ -654,6 +826,66 @@
   $("codexSeries").addEventListener("change", renderCodex);
   document.querySelectorAll('input[name="codexWho"]').forEach((r) => r.addEventListener("change", renderCodex));
 
+  // ---------- achievements (remembered in this browser) ----------
+  const ACHIEVEMENTS = [
+    { id: "firstwin", name: "First Blood", desc: "Win a match." },
+    { id: "flawless", name: "Flawless", desc: "Win all 8 clashes in one match." },
+    { id: "700", name: "Over 700", desc: "Reach 700 total power in a battle." },
+    { id: "pool", name: "Pool Shark", desc: "Win a Pool Draft." },
+    { id: "girls", name: "Girl Power", desc: "Win an Only Girls match." },
+    { id: "queen", name: "Beauty Queen", desc: "Win a girls beauty contest." },
+    { id: "prettyboy", name: "Pretty Boy", desc: "Win a boys beauty contest." },
+    { id: "bumlord", name: "Bum Lord", desc: "Win a battle with a Bum 85+ character on your board." },
+    { id: "aurafarm", name: "Aura Farming", desc: "Finish a battle with 3 characters of Aura 95+ on your board." },
+    { id: "redflag", name: "Red Flag Parade", desc: "Score 95+ in Red Flags." },
+    { id: "illusion", name: "Kyōka Suigetsu", desc: "Win a match with Aizen on your board." },
+    { id: "played", name: "Since When Were You Under the Impression...", desc: "Lose a clash to the opponent's disguised Aizen." },
+    { id: "seethrough", name: "I See Through It", desc: "Ban the disguised Aizen in a Pool Draft." },
+    { id: "hater", name: "Certified Hater", desc: "Ban Gojo." },
+    { id: "lucky", name: "Lucky Reroll", desc: "Reroll into a character with Aura 95+." },
+    { id: "collector", name: "Collector", desc: "Unlock battle stats for 50 characters." },
+    { id: "completionist", name: "Completionist", desc: "Unlock battle stats for every character." },
+  ];
+  const achieved = (() => { try { return new Set(JSON.parse(localStorage.getItem("ad-ach") || "[]")); } catch (e) { return new Set(); } })();
+  function unlockAch(id) {
+    if (achieved.has(id)) return;
+    const a = ACHIEVEMENTS.find((x) => x.id === id);
+    if (!a) return;
+    achieved.add(id);
+    try { localStorage.setItem("ad-ach", JSON.stringify([...achieved])); } catch (e) { /* storage blocked */ }
+    toast(`🏆 ${a.name}`, "ach");
+    SFX.select();
+  }
+  function checkMatchAchievements(r, t) {
+    const mine = CATS.map((cat) => state.you[cat.key]).filter(Boolean);
+    const won = r === "win";
+    if (won) unlockAch("firstwin");
+    if (won && t.youWins === CATS.length) unlockAch("flawless");
+    if (won && state.mode === "pool") unlockAch("pool");
+    if (won && state.gameMode === "girls") unlockAch("girls");
+    if (won && contest === "beauty" && state.contestants === "girls") unlockAch("queen");
+    if (won && contest === "beauty" && state.contestants === "boys") unlockAch("prettyboy");
+    if (won && mine.some(isAizen)) unlockAch("illusion");
+    if (contest === "battle") {
+      if (t.youPts >= 700) unlockAch("700");
+      if (won && mine.some((c) => c.stats[7] >= 85)) unlockAch("bumlord");
+      if (mine.filter((c) => c.stats[6] >= 95).length >= 3) unlockAch("aurafarm");
+    } else if (state.you.red && score(state.you.red, "red") >= 95) unlockAch("redflag");
+  }
+  function checkCollectorAchievements() {
+    if (seen.b.size >= 50) unlockAch("collector");
+    if (ROSTER.every((c) => seen.b.has(c.id))) unlockAch("completionist");
+  }
+  function renderAchievements() {
+    $("achCount").textContent = `${achieved.size} / ${ACHIEVEMENTS.length} unlocked`;
+    $("achList").innerHTML = ACHIEVEMENTS.map((a) =>
+      `<li class="${achieved.has(a.id) ? "got" : ""}"><span class="ach-icon" aria-hidden="true">${achieved.has(a.id) ? "🏆" : "🔒"}</span><div><b>${a.name}</b><span>${a.desc}</span></div></li>`).join("");
+  }
+  $("achBtn").addEventListener("click", () => { SFX.unlock(); SFX.click(); renderAchievements(); $("achModal").classList.remove("hidden"); $("achClose").focus(); });
+  $("achClose").addEventListener("click", () => $("achModal").classList.add("hidden"));
+  $("achModal").addEventListener("click", (e) => { if (e.target.id === "achModal") $("achModal").classList.add("hidden"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("achModal").classList.add("hidden"); });
+
   // ---------- fullscreen ----------
   const fsBtn = $("fsBtn");
   const root = document.documentElement;
@@ -690,6 +922,7 @@
   });
   $("startBtn").addEventListener("click", newGame);
   $("rerollBtn").addEventListener("click", reroll);
+  $("banSearch").addEventListener("input", () => state && state.phase === "ban" && renderPool());
   // Music starts with the first click anywhere (browsers block audio before that).
   document.addEventListener("pointerdown", function first() {
     document.removeEventListener("pointerdown", first);

@@ -26,6 +26,13 @@ Extras:
   contest and clash, sound effects for every action, and signature sounds for the big effects. Toggle music and sound
   with the buttons next to fullscreen.
 
+- **Ban phase** (on by default, switch on the start screen): before the draft each player bans 2 characters.
+  Pool Draft bans from the 30 on the table; Standard bans from the whole roster (with a search box).
+- **Aizen's Kyōka Suigetsu**: if a player has Aizen, the other side sees him as a random Bum 85+ character
+  (on the board, the reveal and the Pool Draft table) until his clash round, when the illusion breaks.
+  The bot falls for it too. Test with `index.html#test-aizen` (opponent gets him) or `#test-aizen-you`.
+- **Achievements**: 17 of them (start screen, "Achievements"), remembered in your browser.
+
 Draft styles:
 - **Standard**: each turn you draw a random character and choose their slot.
 - **Pool Draft**: 30 random characters are laid out. You and the bot take turns picking one, then choose their slot.

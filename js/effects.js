@@ -112,7 +112,7 @@ window.FX = (() => {
   });
 
   const flash = (color = "#ffffff", dur = 0.45, alpha = 0.85) => ({
-    layer: "front",
+    layer: "front", kind: "flash",
     draw(g, t) {
       if (t > dur) return;
       g.fillStyle = rgba(color, alpha * (1 - t / dur));
@@ -252,7 +252,7 @@ window.FX = (() => {
     const bolts = [];
     let next = 0;
     return {
-      layer: o.layer,
+      layer: o.layer, kind: "zap",
       draw(g, t, dt, A) {
         if (t >= next) {
           next = t + rand(o.every[0], o.every[1]);
@@ -290,7 +290,7 @@ window.FX = (() => {
     const list = [];
     let next = 0.1;
     return {
-      layer: o.layer,
+      layer: o.layer, kind: "slash",
       draw(g, t, dt, A) {
         if (t >= next) {
           next = t + rand(o.every[0], o.every[1]);
@@ -380,7 +380,7 @@ window.FX = (() => {
   function bigText(text, opts) {
     const o = Object.assign({ color: "#ffd166", at: 0.15, dur: 1.5, size: 0.2 }, opts);
     return {
-      layer: "front",
+      layer: "front", kind: "boom",
       draw(g, t, dt, A) {
         const lt = t - o.at;
         if (lt < 0 || lt > o.dur) return;
@@ -407,7 +407,7 @@ window.FX = (() => {
     const o = Object.assign({ layer: "back", color: "#ffb347", count: 7 }, opts);
     let paths = null;
     return {
-      layer: o.layer,
+      layer: o.layer, kind: "quake",
       draw(g, t, dt, A) {
         const ox = A.cx, oy = A.y + A.h * 0.96;
         if (!paths) {
@@ -1075,6 +1075,80 @@ window.FX = (() => {
       glow("#ff8fab", 0.45),
       particles({ layer: "front", spawn: "screen", colors: ["#ffd1dc", "#ffffff", "#ffe066"], shape: "text", texts: ["✦", "✧", "★"], count: 30, size: [14, 28], speed: [10, 30], life: [1.5, 2.5], shrink: false, blend: "source-over", textGlow: true }),
     ] }),
+    // ---- newest batch ----
+    minato: () => ({ name: "FLYING RAIJIN", layers: [
+      flash("#fff3a0", 0.25, 0.7), glow("#ffe066", 0.45),
+      lightning({ colors: ["#ffe066", "#ffffff"], every: [0.06, 0.18], width: 2.5 }),
+      speedLines({ mode: "horizontal", color: "#ffe066", count: 36, alpha: 0.3 }),
+    ] }),
+    obito: () => ({ name: "KAMUI", layers: [swirl("#3a0ca3"), tint("#000000", 0.3), symbol(mangekyo, { layer: "front", size: 0.6, spin: 4, env: [0.12, 0.6, 1.1] })] }),
+    jotaro: () => ({ name: "STAR PLATINUM", layers: [
+      glow("#9d4edd", 0.45), speedLines({ color: "#e0aaff", count: 70, alpha: 0.35 }),
+      bigText("ORA ORA ORA", { color: "#e0aaff", size: 0.13 }), at(0.1, () => shake(700, 10)),
+    ] }),
+    kurapika: () => ({ name: "EMPEROR TIME", layers: [
+      tint("#14000a", 0.4), glow("#ff1a3a", 0.45),
+      particles({ layer: "front", spawn: "screen", colors: ["#c0c0c0", "#ffffff"], shape: "line", count: 30, size: [2, 3], speed: [200, 400], dir: "out", life: [0.4, 0.8] }),
+    ] }),
+    rengoku: () => ({ name: "SET YOUR HEART ABLAZE", layers: [
+      glow("#ff7b00", 0.6, 1.4), tint("#2a0e00", 0.25),
+      particles({ colors: ["#ff7b00", "#ffb000", "#ff3d00"], count: 150, shape: "flame", size: [10, 22], speed: [80, 170], life: [0.7, 1.4] }),
+      slashes({ color: "#ffb000", every: [0.4, 0.9], width: 10 }),
+    ] }),
+    kaneki: () => ({ name: "KAGUNE", layers: [
+      tint("#0a0000", 0.45), tendrils("#c1121f"),
+      particles({ layer: "front", spawn: "screen", colors: ["rgba(255,80,80,.85)"], shape: "text", texts: ["1000-7", "993", "986", "979", "972"], count: 14, size: [16, 26], speed: [10, 25], life: [2.5, 4], shrink: false, blend: "source-over" }),
+    ] }),
+    spike: () => ({ name: "SEE YOU SPACE COWBOY", layers: [
+      tint("#060b18", 0.35), glow("#f4a261", 0.3),
+      particles({ spawn: "screen", colors: ["#ffffff", "#ffe8c2"], count: 60, size: [1, 2.5], speed: [5, 20], life: [2, 4] }),
+      particles({ layer: "front", spawn: "card", dir: "out", colors: ["#ffd166"], shape: "line", count: 10, size: [2, 3], speed: [700, 1000], life: [0.2, 0.4] }),
+    ] }),
+    guts: () => ({ name: "BERSERKER ARMOR", layers: [
+      tint("#0a0000", 0.45), glow("#9d0208", 0.45),
+      slashes({ color: "#9d0208", every: [0.2, 0.5], width: 16 }), at(0.05, () => shake(500, 12)),
+    ] }),
+    griffith: () => ({ name: "THE ECLIPSE", layers: [
+      tint("#1a0000", 0.5), glow("#ff2a2a", 0.4, 1.4),
+      particles({ layer: "front", spawn: "top", colors: ["#ffffff", "#f2f2f2"], shape: "feather", count: 26, size: [6, 11], speed: [30, 70], dir: Math.PI / 2, spread: 0.5, spin: 2, wobble: 60, life: [3, 5], shrink: false, blend: "source-over" }),
+    ] }),
+    edward: () => ({ name: "ALCHEMY", layers: [
+      glow("#4da3ff", 0.45),
+      symbol(magicCircle("#7cc4ff"), { size: 1.9, spin: 0.4, alpha: 0.65, glowColor: "#4da3ff" }),
+      lightning({ colors: ["#7cc4ff", "#ffffff"], every: [0.08, 0.25], width: 2 }),
+    ] }),
+    kurumi: () => ({ name: "ZAFKIEL", layers: [
+      tint("#120000", 0.45), glow("#d00000", 0.4),
+      symbol(clockFace, { size: 1.9, spin: 0, alpha: 0.6, glowColor: "#ff2a2a" }),
+    ] }),
+    aqua: () => ({ name: "GOD BLOW", layers: [
+      waves("#5bc0eb"), glow("#5bc0eb", 0.35),
+      bigText("GOD BLOW", { color: "#bfe9ff", size: 0.14 }),
+    ] }),
+    violet: () => ({ name: "AUTO MEMORY DOLL", layers: [
+      glow("#4ea8de", 0.35),
+      particles({ layer: "front", spawn: "top", colors: ["#f2efe6", "#ffffff"], blend: "source-over", shape: "page", count: 12, size: [7, 12], speed: [40, 90], dir: Math.PI / 2, spread: 0.3, spin: 1.5, wobble: 60, life: [4, 6], shrink: false }),
+    ] }),
+    kaguya: () => ({ name: "HOW CUTE", layers: [
+      glow("#e5383b", 0.4),
+      particles({ layer: "front", spawn: "screen", colors: ["#ffb3c1", "#ffffff"], shape: "text", texts: ["How cute", "♥", "O-kawaii koto", "♥"], count: 16, size: [16, 26], speed: [10, 25], life: [2, 3.5], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    uta: () => ({ name: "MUSIC OF UTA", layers: [
+      glow("#ff5c8a", 0.4, 1.2),
+      particles({ layer: "front", spawn: "screen", colors: ["#ff8fab", "#ffffff", "#a0c4ff"], shape: "text", texts: ["♪", "♫", "♬"], count: 26, size: [18, 36], speed: [20, 50], life: [2, 3.5], shrink: false, blend: "source-over", textGlow: true }),
+    ] }),
+    revy: () => ({ name: "TWO HANDS", layers: [
+      flash("#ffd166", 0.15, 0.6),
+      particles({ spawn: "card", dir: "out", colors: ["#ffd166", "#ffffff"], shape: "line", count: 60, size: [1.5, 3], speed: [800, 1200], life: [0.15, 0.35] }),
+      at(0.05, () => shake(400, 6)),
+    ] }),
+    motoko: () => ({ name: "THERMO-OPTIC CAMO", layers: [tint("#000a05", 0.3), symbol(hud("#52b788"), { size: 1.6, spin: 0, alpha: 0.7 }),
+      particles({ layer: "front", spawn: "screen", colors: ["rgba(82,183,136,.85)"], shape: "text", texts: ["0", "1", "01", "10"], count: 30, size: [12, 20], speed: [40, 90], dir: Math.PI / 2, spread: 0.05, life: [1, 2], shrink: false, blend: "source-over" })] }),
+    lucy: () => ({ name: "NETRUNNER", layers: [glow("#00f5d4", 0.4), symbol(hud("#00f5d4"), { size: 1.5, spin: 0, alpha: 0.6 }),
+      particles({ layer: "front", spawn: "screen", colors: ["#00f5d4", "#ff4dff"], shape: "square", count: 30, size: [3, 8], speed: [10, 40], life: [0.3, 0.9], shrink: false, blend: "source-over" })] }),
+    akame: () => ({ name: "EBONY BLADE", layers: [tint("#0a0000", 0.35), glow("#c1121f", 0.35), slashes({ color: "#ff2a2a", every: [0.1, 0.3], width: 8 })] }),
+    emilia: () => ({ name: "ICE MAGIC", layers: [glow("#cfe8ff", 0.45, 1.2),
+      particles({ layer: "front", spawn: "top", colors: ["#ffffff", "#dff3ff"], count: 70, size: [1.5, 4], speed: [30, 70], dir: Math.PI / 2, spread: 0.4, wobble: 30, life: [3, 6], shrink: false })] }),
     mrsatan: () => ({ name: "THE PEOPLE'S CHAMP", layers: [
       particles({ layer: "front", spawn: "top", blend: "source-over", shape: "confetti", colors: ["#ff4d4d", "#ffd166", "#3ddc84", "#7aa7ff", "#ffffff"], count: 90, size: [8, 14], speed: [80, 160], dir: Math.PI / 2, gravity: 40, spin: 4, wobble: 50, life: [2.5, 4], shrink: false }),
       bigText("CHAMP!", { color: "#ffd166" }),
@@ -1158,11 +1232,18 @@ window.FX = (() => {
       anchorEl = el;
       const fx = effectFor(c);
       main = stamp(fx.layers);
+      if (window.SFX) SFX.effect(fx.name, new Set(fx.layers.map((L) => L.kind).filter(Boolean)));
       ensureRunning();
       return fx.name;
     },
     // Just the name, without playing.
-    nameFor(c) { return effectFor(c).name; },
+    nameFor(c, m) {
+      if (!m) return effectFor(c).name;
+      const keep = mode; mode = m;
+      const n = effectFor(c).name;
+      mode = keep;
+      return n;
+    },
     // "battle" or "beauty": which general effects characters without a signature one get.
     setMode(m) { mode = m; },
     stop() { main = []; },

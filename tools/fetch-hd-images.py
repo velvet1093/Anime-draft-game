@@ -67,6 +67,20 @@ WIKIS = {
     "Re:Zero": "rezero.fandom.com",
     "Akame ga Kill!": "akamegakill.fandom.com",
     "Frieren": "frieren.fandom.com",
+    "Bunny Girl Senpai": "aobuta.fandom.com",
+    "The Apothecary Diaries": "kusuriya.fandom.com",
+    "KonoSuba": "konosuba.fandom.com",
+    "Violet Evergarden": "violet-evergarden.fandom.com",
+    "Date A Live": "date-a-live.fandom.com",
+    "The Rising of the Shield Hero": "shield-hero.fandom.com",
+    "Black Lagoon": "lagooncompany.fandom.com",
+    "Ghost in the Shell": "ghostintheshell.fandom.com",
+    "Cyberpunk: Edgerunners": "cyberpunk.fandom.com",
+    "Lycoris Recoil": "lycoris-recoil.fandom.com",
+    "Tokyo Ghoul": "tokyoghoul.fandom.com",
+    "Cowboy Bebop": "cowboybebop.fandom.com",
+    "Berserk": "berserk.fandom.com",
+    "Fullmetal Alchemist": "fma.fandom.com",
 }
 
 

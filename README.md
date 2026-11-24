@@ -17,6 +17,15 @@ Modes:
   Physique, Drip (outfit and style), Personality, Charm, and Red Flags (the more toxic, the more they score there).
   Ratings live in `js/looks.js`, along with the list of girls used by the girls-only rosters.
 
+Extras:
+- **Reroll**: once per match. In Standard it swaps your current draw (key R); in Pool Draft it replaces every
+  character nobody has picked yet.
+- **Character index** (start screen, "Characters"): every character with search and filters. Stats unlock once you've
+  seen that character in a clash (battle stats in a battle, looks in a beauty contest); unlocks are remembered in your browser.
+- **Music and sound**: all synthesized in `js/audio.js` (no audio files). Separate tracks for the menu, draft, beauty
+  contest and clash, sound effects for every action, and signature sounds for the big effects. Toggle music and sound
+  with the buttons next to fullscreen.
+
 Draft styles:
 - **Standard**: each turn you draw a random character and choose their slot.
 - **Pool Draft**: 30 random characters are laid out. You and the bot take turns picking one, then choose their slot.

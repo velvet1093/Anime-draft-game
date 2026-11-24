@@ -15,12 +15,26 @@
   <div id="hero" class="hero hidden"><img id="portrait" alt="" /></div>
   <div id="heroAnchor" class="hero-anchor"></div>
   <canvas id="fxFront" class="fx front"></canvas>
-  <button id="fsBtn" class="fs-btn" type="button" aria-label="Enter fullscreen" title="Fullscreen">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-      <path class="fs-enter" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
-      <path class="fs-exit" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" />
-    </svg>
-  </button>
+  <div class="top-controls">
+    <button id="musicBtn" class="icon-btn" type="button" aria-pressed="true" aria-label="Music" title="Music on/off">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="17" cy="16" r="3" />
+        <path class="off-slash" d="M3 3l18 18" />
+      </svg>
+    </button>
+    <button id="sfxBtn" class="icon-btn" type="button" aria-pressed="true" aria-label="Sound effects" title="Sound effects on/off">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9v6h4l5 4V5L8 9H4z" /><path class="on-waves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" />
+        <path class="off-slash" d="M3 3l18 18" />
+      </svg>
+    </button>
+    <button id="fsBtn" class="icon-btn fs-btn" type="button" aria-label="Enter fullscreen" title="Fullscreen">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path class="fs-enter" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+        <path class="fs-exit" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" />
+      </svg>
+    </button>
+  </div>
 
   <!-- Start screen -->
   <section id="start" class="screen">
@@ -52,7 +66,10 @@
           <b>POOL DRAFT</b><span>30 characters on the table. Take turns picking who you want.</span></label>
       </div>
       <label class="field">Your name <input id="nameInput" maxlength="16" placeholder="YOU" /></label>
-      <button id="startBtn" class="btn primary">START DRAFT</button>
+      <div class="start-actions">
+        <button id="startBtn" class="btn primary">START DRAFT</button>
+        <button id="codexBtn" class="btn" type="button">CHARACTERS</button>
+      </div>
     </div>
   </section>
 
@@ -92,6 +109,9 @@
     </aside>
 
     <button id="forfeitBtn" class="btn forfeit">FORFEIT</button>
+    <button id="rerollBtn" class="btn reroll" type="button" title="Swap for a new draw (key R). One per match.">
+      <span aria-hidden="true">&#10227;</span> REROLL <span class="n" id="rerollLeft">1</span>
+    </button>
   </section>
 
   <!-- Clash -->
@@ -128,6 +148,46 @@
     <button id="skipBtn" class="btn skip">SKIP &#9656;&#9656;</button>
   </section>
 
+  <!-- Character index -->
+  <section id="codex" class="screen hidden">
+    <div class="codex-wrap">
+      <div class="codex-head">
+        <button id="codexBack" class="btn" type="button">&larr; BACK</button>
+        <div>
+          <h2>CHARACTERS</h2>
+          <div class="codex-count" id="codexCount"></div>
+        </div>
+      </div>
+      <div class="codex-tools">
+        <input id="codexSearch" type="search" placeholder="Search a name or series" aria-label="Search characters" />
+        <div class="seg" role="radiogroup" aria-label="Show">
+          <label><input type="radio" name="codexWho" id="codexAll" value="all" checked /><span>ALL</span></label>
+          <label><input type="radio" name="codexWho" id="codexGirls" value="f" /><span>GIRLS</span></label>
+          <label><input type="radio" name="codexWho" id="codexBoys" value="m" /><span>BOYS</span></label>
+        </div>
+        <select id="codexSeries" aria-label="Series"></select>
+      </div>
+      <p class="codex-note">Stats unlock once you've seen a character in a clash: battle stats in a battle, looks in a beauty contest.</p>
+      <div class="codex-grid" id="codexGrid"></div>
+    </div>
+    <div class="codex-detail hidden" id="codexDetail" role="dialog" aria-modal="true" aria-labelledby="cdName">
+      <div class="cd-card">
+        <button id="cdClose" class="cd-close" type="button" aria-label="Close">&times;</button>
+        <div class="cd-img"><img id="cdImg" alt="" /></div>
+        <div class="cd-info">
+          <div class="cd-series" id="cdSeries"></div>
+          <h3 id="cdName"></h3>
+          <div class="cd-title" id="cdTitle"></div>
+          <div class="cd-fx" id="cdFx"></div>
+          <h4>BATTLE</h4>
+          <div class="cd-stats" id="cdBattle"></div>
+          <h4>BEAUTY</h4>
+          <div class="cd-stats" id="cdBeauty"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Results -->
   <section id="results" class="screen hidden">
     <div class="results-card">
@@ -146,6 +206,7 @@
   <script src="js/characters.js"></script>
   <script src="js/looks.js"></script>
   <script src="js/images.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/effects.js"></script>
   <script src="js/game.js"></script>
 </body>

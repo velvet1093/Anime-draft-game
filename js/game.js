@@ -120,10 +120,15 @@
     const roster = rosterFor(gameMode, checked("contestants"));
     computeMeans(roster);
     const shuffled = shuffle(roster);
+    SFX.unlock();
+    SFX.music(contest === "beauty" ? "beauty" : "draft");
     state = {
       mode,
-      deck: shuffled.slice(0, TOTAL_PICKS),
+      // Standard draws pop from the end of the deck; Pool Draft lays out the first 30 and keeps the rest as a bench for rerolls.
+      deck: mode === "pool" ? [] : shuffled,
       pool: mode === "pool" ? shuffled.slice(0, POOL_SIZE) : [],
+      bench: mode === "pool" ? shuffled.slice(POOL_SIZE) : [],
+      rerolls: 1,
       taken: {},
       pick: 0,
       turn: youFirst ? "you" : "opp",
@@ -134,7 +139,7 @@
       youName: ($("nameInput").value.trim() || "YOU").toUpperCase(),
       busy: false,
     };
-    preload(mode === "pool" ? state.pool : state.deck);
+    preload(mode === "pool" ? state.pool : state.deck.slice(-TOTAL_PICKS - 2));
     $("youName").textContent = state.youName;
     $("oppName").textContent = state.oppName;
     show("game");
@@ -143,9 +148,9 @@
   }
 
   function show(screen) {
-    ["start", "game", "clash", "results"].forEach((s) => $(s).classList.toggle("hidden", s !== screen));
+    ["start", "game", "clash", "results", "codex"].forEach((s) => $(s).classList.toggle("hidden", s !== screen));
     if (screen !== "game") $("hero").classList.add("hidden");
-    if (screen === "start" || screen === "results") FX.stop();
+    if (screen === "start" || screen === "results" || screen === "codex") { FX.stop(); SFX.music("menu"); }
     window.scrollTo(0, 0);
   }
 
@@ -173,6 +178,43 @@
       el.innerHTML = `<span>${cat.short}</span><span class="state">${c ? c.name.toUpperCase() : "OPEN"}</span>`;
       opp.appendChild(el);
     });
+    updateReroll();
+  }
+
+  // ---------- reroll (one per match) ----------
+  // Standard: swap your current draw for a new one. Pool Draft: replace every character nobody has picked yet.
+  function canReroll() {
+    if (!state || state.turn !== "you" || state.busy || !state.rerolls) return false;
+    return state.mode === "pool" ? !state.current && state.bench.length > 0 : !!state.current && state.deck.length > 0;
+  }
+  function updateReroll() {
+    const b = $("rerollBtn");
+    b.disabled = !canReroll();
+    b.classList.toggle("used", !!state && state.rerolls === 0);
+    $("rerollLeft").textContent = state ? state.rerolls : 1;
+  }
+  function reroll() {
+    if (!canReroll()) return;
+    state.rerolls--;
+    SFX.reroll();
+    if (state.mode === "pool") {
+      state.pool = state.pool.map((c) => {
+        if (state.taken[c.id] || !state.bench.length) return c;
+        const fresh = state.bench.pop();
+        state.bench.unshift(c);
+        return fresh;
+      });
+      preload(state.pool);
+      renderPool();
+      const g = $("poolGrid");
+      g.classList.remove("reshuffle"); void g.offsetWidth; g.classList.add("reshuffle");
+    } else {
+      state.current = state.deck.pop();
+      renderReveal(state.current, "you");
+      renderBoards();
+    }
+    startTimer();
+    updateReroll();
   }
 
   function setStatus(yours, title) {
@@ -224,6 +266,7 @@
       if (!owner) el.addEventListener("click", () => playerPoolPick(c));
       grid.appendChild(el);
     });
+    updateReroll();
   }
 
   function showPoolTurn() {
@@ -234,6 +277,7 @@
   }
 
   function poolPick(c, side) {
+    SFX.select();
     state.taken[c.id] = side;
     state.current = c;
     renderReveal(c, side);
@@ -284,6 +328,7 @@
     }
     state.current = state.deck.pop();
     state.busy = false;
+    SFX.draw();
     renderReveal(state.current, state.turn);
     renderBoards();
     startTimer();
@@ -296,8 +341,11 @@
   function startTimer() {
     clearInterval(timerHandle);
     const end = Date.now() + TURN_SECONDS * 1000;
+    let lastSec = TURN_SECONDS;
     const tick = () => {
       const left = Math.max(0, end - Date.now());
+      const sec = Math.ceil(left / 1000);
+      if (sec !== lastSec) { lastSec = sec; if (sec <= 5 && sec > 0 && state.turn === "you") SFX.tick(); }
       $("timerBar").style.width = (left / (TURN_SECONDS * 1000)) * 100 + "%";
       $("timerBar").classList.toggle("low", left < 5000);
       $("timerNum").textContent = Math.ceil(left / 1000);
@@ -319,6 +367,7 @@
   }
 
   function place(side, key) {
+    SFX.place();
     state[side][key] = state.current;
     clearInterval(timerHandle);
     state.busy = true;
@@ -397,6 +446,7 @@
     $("clashEyebrow").textContent = contest === "beauty" ? "THE JUDGING" : "THE CLASH";
     $("finLabel").textContent = contest === "beauty" ? "TOTAL SCORE" : "TOTAL POWER";
     $("clash").classList.remove("final");
+    SFX.music("clash");
     const fy = $("fcYou"), fo = $("fcOpp");
 
     for (let i = 0; i < CATS.length && !skipping; i++) {
@@ -415,15 +465,17 @@
 
       // Slide in.
       fy.classList.remove("offstage"); fo.classList.remove("offstage");
+      if (!skipping) SFX.whoosh();
       await wait(550);
       // Reveal the stats.
       await Promise.all([countUp(fy.querySelector(".fnum"), sa, 800), countUp(fo.querySelector(".fnum"), sb, 800)]);
+      markSeen(a); markSeen(b);
       await wait(250);
       // Charge and collide.
       fy.classList.add("charge"); fo.classList.add("charge");
       await wait(220);
       const vs = $("clashVs").getBoundingClientRect();
-      if (!skipping) FX.impact(vs.left + vs.width / 2, vs.top + vs.height / 2, sa === sb ? "#ffffff" : sa > sb ? "#7aa7ff" : "#ff4d4d");
+      if (!skipping) { FX.impact(vs.left + vs.width / 2, vs.top + vs.height / 2, sa === sb ? "#ffffff" : sa > sb ? "#7aa7ff" : "#ff4d4d"); SFX.impact(); }
       fy.classList.remove("charge"); fo.classList.remove("charge");
       $("clashVs").className = "vs hit";
 
@@ -450,8 +502,11 @@
       $("finYou").className = ""; $("finOpp").className = "";
       $("finResult").textContent = ""; $("finResult").className = "fin-result";
       fin.classList.remove("hidden");
+      SFX.stopMusic();
       await wait(500);
+      if (!skipping) SFX.drumroll(2.2);
       await Promise.all([countUp($("finYou"), t.youPts, 2200), countUp($("finOpp"), t.oppPts, 2200)]);
+      if (!skipping) (r === "win" ? SFX.win : SFX.lose)();
       if (r !== "draw") $(r === "win" ? "finYou" : "finOpp").className = "lead";
       $("finResult").textContent = r === "win" ? "VICTORY" : r === "lose" ? "DEFEAT" : "DRAW";
       $("finResult").className = "fin-result " + r;
@@ -487,6 +542,9 @@
 
   function finish(forfeited) {
     clearInterval(timerHandle);
+    // The results table shows every placed character's rating, so they count as seen.
+    CATS.forEach((cat) => { markSeen(state.you[cat.key]); markSeen(state.opp[cat.key]); });
+    if (forfeited) SFX.lose();
     const rows = CATS.map((cat) => {
       const a = state.you[cat.key], b = state.opp[cat.key];
       const sa = a ? score(a, cat.key) : 0;
@@ -514,6 +572,84 @@
     setPoolPhase(false);
     show("results");
   }
+
+  // ---------- stat unlocks (remembered in this browser) ----------
+  const seen = (() => {
+    try { const v = JSON.parse(localStorage.getItem("ad-seen") || "{}"); return { b: new Set(v.b || []), l: new Set(v.l || []) }; }
+    catch (e) { return { b: new Set(), l: new Set() }; }
+  })();
+  function markSeen(c) {
+    if (!c) return;
+    const set = contest === "beauty" ? seen.l : seen.b;
+    if (set.has(c.id)) return;
+    set.add(c.id);
+    try { localStorage.setItem("ad-seen", JSON.stringify({ b: [...seen.b], l: [...seen.l] })); } catch (e) { /* storage blocked */ }
+  }
+
+  // ---------- character index ----------
+  const BATTLE_LABELS = window.CATEGORIES.map((c) => c.label);
+  const BEAUTY_LABELS = window.BEAUTY_CATEGORIES.map((c) => c.label);
+  const seriesList = [...new Set(ROSTER.map((c) => c.series))].sort();
+  $("codexSeries").innerHTML = `<option value="">ALL SERIES</option>` + seriesList.map((x) => `<option>${x}</option>`).join("");
+
+  function renderCodex() {
+    const q = $("codexSearch").value.trim().toLowerCase();
+    const who = checked("codexWho");
+    const series = $("codexSeries").value;
+    const list = ROSTER.filter((c) =>
+      (!q || c.name.toLowerCase().includes(q) || c.series.toLowerCase().includes(q)) &&
+      (who === "all" || genderOf(c) === who) &&
+      (!series || c.series === series));
+    const grid = $("codexGrid");
+    grid.innerHTML = "";
+    list.forEach((c) => {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "cx";
+      el.style.setProperty("--card-glow", seriesColor(c));
+      el.innerHTML = `<img alt="" loading="lazy" /><span class="cx-badges">${seen.b.has(c.id) ? '<i title="Battle stats unlocked">⚔</i>' : ""}${seen.l.has(c.id) ? '<i title="Looks unlocked">✦</i>' : ""}</span><span class="cx-name">${c.name}</span><span class="cx-series">${c.series}</span>`;
+      findImage(c).then((img) => (el.querySelector("img").src = img.url));
+      el.addEventListener("click", () => openDetail(c));
+      grid.appendChild(el);
+    });
+    if (!list.length) grid.innerHTML = `<p class="codex-empty">No characters match that search.</p>`;
+    $("codexCount").textContent = `${ROSTER.length} characters · battle stats unlocked ${seen.b.size} · looks unlocked ${seen.l.size}`;
+  }
+
+  function statRows(labels, values, unlocked, how) {
+    if (!unlocked) {
+      return `<p class="cd-locked">🔒 Locked. ${how}</p>` +
+        labels.map((l) => `<div class="cd-row locked"><span>${l}</span><b><i style="width:0"></i></b><em>???</em></div>`).join("");
+    }
+    return labels.map((l, i) => `<div class="cd-row"><span>${l}</span><b><i style="width:${values[i]}%"></i></b><em>${values[i]}</em></div>`).join("");
+  }
+
+  function openDetail(c) {
+    SFX.click();
+    findImage(c).then((img) => ($("cdImg").src = img.url));
+    $("cdSeries").textContent = c.series;
+    $("cdName").textContent = c.name;
+    $("cdTitle").textContent = c.title;
+    const fxB = FX.nameFor(c, "battle"), fxL = FX.nameFor(c, "beauty");
+    $("cdFx").innerHTML = [fxB && `<span>⚔ ${fxB}</span>`, fxL && fxL !== fxB && `<span>✦ ${fxL}</span>`].filter(Boolean).join("");
+    // Values are looked up per category: stats are stored in a different order than the board shows them.
+    const battle = window.CATEGORIES.map((cat) => c.stats[STAT_INDEX[cat.key]]);
+    const looks = window.BEAUTY_CATEGORIES.map((cat) => window.LOOKS[c.id][LOOK_INDEX[cat.key]]);
+    $("cdBattle").innerHTML = statRows(BATTLE_LABELS, battle, seen.b.has(c.id), "See them in a battle clash to unlock.");
+    $("cdBeauty").innerHTML = statRows(BEAUTY_LABELS, looks, seen.l.has(c.id), "See them in a beauty contest to unlock.");
+    $("codexDetail").classList.remove("hidden");
+    $("cdClose").focus();
+  }
+  const closeDetail = () => $("codexDetail").classList.add("hidden");
+
+  $("codexBtn").addEventListener("click", () => { SFX.unlock(); SFX.click(); renderCodex(); show("codex"); });
+  $("codexBack").addEventListener("click", () => { closeDetail(); show("start"); });
+  $("cdClose").addEventListener("click", closeDetail);
+  $("codexDetail").addEventListener("click", (e) => { if (e.target.id === "codexDetail") closeDetail(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetail(); });
+  $("codexSearch").addEventListener("input", renderCodex);
+  $("codexSeries").addEventListener("change", renderCodex);
+  document.querySelectorAll('input[name="codexWho"]').forEach((r) => r.addEventListener("change", renderCodex));
 
   // ---------- fullscreen ----------
   const fsBtn = $("fsBtn");
@@ -545,10 +681,29 @@
   // ---------- input ----------
   document.addEventListener("keydown", (e) => {
     if ($("game").classList.contains("hidden")) return;
+    if (e.key === "r" || e.key === "R") return reroll();
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= CATS.length) playerPlace(CATS[n - 1].key);
   });
   $("startBtn").addEventListener("click", newGame);
+  $("rerollBtn").addEventListener("click", reroll);
+  // Music starts with the first click anywhere (browsers block audio before that).
+  document.addEventListener("pointerdown", function first() {
+    document.removeEventListener("pointerdown", first);
+    SFX.unlock();
+    if (!$("start").classList.contains("hidden") || !$("codex").classList.contains("hidden")) SFX.music("menu");
+  });
+
+  // ---------- music / sound toggles ----------
+  const syncAudioBtns = () => {
+    $("musicBtn").setAttribute("aria-pressed", String(SFX.musicOn));
+    $("musicBtn").classList.toggle("off", !SFX.musicOn);
+    $("sfxBtn").setAttribute("aria-pressed", String(SFX.sfxOn));
+    $("sfxBtn").classList.toggle("off", !SFX.sfxOn);
+  };
+  $("musicBtn").addEventListener("click", () => { SFX.unlock(); SFX.setMusic(!SFX.musicOn); syncAudioBtns(); });
+  $("sfxBtn").addEventListener("click", () => { SFX.unlock(); SFX.setSfx(!SFX.sfxOn); syncAudioBtns(); SFX.click(); });
+  syncAudioBtns();
   // The Girls / Boys / All choice only applies to the beauty contest.
   const syncContestants = () => ($("contestants").hidden = checked("contest") !== "beauty");
   document.querySelectorAll('input[name="contest"]').forEach((r) => r.addEventListener("change", syncContestants));

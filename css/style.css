@@ -111,6 +111,10 @@ body.shake { animation: shake .09s linear infinite; }
 .reroll .n { display: inline-block; min-width: 20px; margin-left: 6px; padding: 0 6px; border-radius: 10px; background: rgba(255,255,255,.2); }
 .reroll:hover:not(:disabled) { background: #4c3790; }
 .reroll:disabled { opacity: .4; cursor: default; }
+.reroll[hidden] { display: none; }
+.unlock-all { padding: 8px 16px; font-size: 14px; }
+.unlock-all[aria-pressed="true"] { background: rgba(255,209,102,.15); border-color: var(--gold); color: #ffe8a3; }
+.codex-note[hidden] { display: none; }
 .reroll.used { opacity: .25; }
 .pool-grid.reshuffle .pc { animation: reshuffle .45s ease; }
 @keyframes reshuffle { 0% { transform: rotateY(90deg) scale(.8); opacity: 0; } 100% { transform: none; opacity: 1; } }

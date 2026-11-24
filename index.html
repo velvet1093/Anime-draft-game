@@ -109,7 +109,7 @@
     </aside>
 
     <button id="forfeitBtn" class="btn forfeit">FORFEIT</button>
-    <button id="rerollBtn" class="btn reroll" type="button" title="Swap for a new draw (key R). One per match.">
+    <button id="rerollBtn" class="btn reroll" type="button" title="Swap your draw for a new one (key R). One per match.">
       <span aria-hidden="true">&#10227;</span> REROLL <span class="n" id="rerollLeft">1</span>
     </button>
   </section>
@@ -166,8 +166,9 @@
           <label><input type="radio" name="codexWho" id="codexBoys" value="m" /><span>BOYS</span></label>
         </div>
         <select id="codexSeries" aria-label="Series"></select>
+        <button id="unlockAllBtn" class="btn unlock-all" type="button" aria-pressed="false">UNLOCK ALL</button>
       </div>
-      <p class="codex-note">Stats unlock once you've seen a character in a clash: battle stats in a battle, looks in a beauty contest.</p>
+      <p class="codex-note" id="codexNote">Stats unlock once you've seen a character in a clash: battle stats in a battle, looks in a beauty contest.</p>
       <div class="codex-grid" id="codexGrid"></div>
     </div>
     <div class="codex-detail hidden" id="codexDetail" role="dialog" aria-modal="true" aria-labelledby="cdName">

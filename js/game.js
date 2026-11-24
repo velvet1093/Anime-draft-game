@@ -124,11 +124,10 @@
     SFX.music(contest === "beauty" ? "beauty" : "draft");
     state = {
       mode,
-      // Standard draws pop from the end of the deck; Pool Draft lays out the first 30 and keeps the rest as a bench for rerolls.
+      // Standard draws pop from the end of the deck (the rest is spare for a reroll); Pool Draft lays out the first 30.
       deck: mode === "pool" ? [] : shuffled,
       pool: mode === "pool" ? shuffled.slice(0, POOL_SIZE) : [],
-      bench: mode === "pool" ? shuffled.slice(POOL_SIZE) : [],
-      rerolls: 1,
+      rerolls: mode === "pool" ? 0 : 1, // Pool Draft has no reroll
       taken: {},
       pick: 0,
       turn: youFirst ? "you" : "opp",
@@ -140,6 +139,7 @@
       busy: false,
     };
     preload(mode === "pool" ? state.pool : state.deck.slice(-TOTAL_PICKS - 2));
+    $("rerollBtn").hidden = mode === "pool";
     $("youName").textContent = state.youName;
     $("oppName").textContent = state.oppName;
     show("game");
@@ -181,11 +181,11 @@
     updateReroll();
   }
 
-  // ---------- reroll (one per match) ----------
-  // Standard: swap your current draw for a new one. Pool Draft: replace every character nobody has picked yet.
+  // ---------- reroll (one per match, Standard only) ----------
+  // Swaps your current draw for a new one. Pool Draft doesn't get one: everyone can already see the whole table.
   function canReroll() {
-    if (!state || state.turn !== "you" || state.busy || !state.rerolls) return false;
-    return state.mode === "pool" ? !state.current && state.bench.length > 0 : !!state.current && state.deck.length > 0;
+    if (!state || state.mode === "pool" || state.turn !== "you" || state.busy || !state.rerolls) return false;
+    return !!state.current && state.deck.length > 0;
   }
   function updateReroll() {
     const b = $("rerollBtn");
@@ -197,22 +197,9 @@
     if (!canReroll()) return;
     state.rerolls--;
     SFX.reroll();
-    if (state.mode === "pool") {
-      state.pool = state.pool.map((c) => {
-        if (state.taken[c.id] || !state.bench.length) return c;
-        const fresh = state.bench.pop();
-        state.bench.unshift(c);
-        return fresh;
-      });
-      preload(state.pool);
-      renderPool();
-      const g = $("poolGrid");
-      g.classList.remove("reshuffle"); void g.offsetWidth; g.classList.add("reshuffle");
-    } else {
-      state.current = state.deck.pop();
-      renderReveal(state.current, "you");
-      renderBoards();
-    }
+    state.current = state.deck.pop();
+    renderReveal(state.current, "you");
+    renderBoards();
     startTimer();
     updateReroll();
   }
@@ -578,6 +565,10 @@
     try { const v = JSON.parse(localStorage.getItem("ad-seen") || "{}"); return { b: new Set(v.b || []), l: new Set(v.l || []) }; }
     catch (e) { return { b: new Set(), l: new Set() }; }
   })();
+  const UNLOCK_KEY = "ad-unlockall";
+  let unlockAll = (() => { try { return localStorage.getItem(UNLOCK_KEY) === "1"; } catch (e) { return false; } })();
+  const hasBattle = (c) => unlockAll || seen.b.has(c.id);
+  const hasLooks = (c) => unlockAll || seen.l.has(c.id);
   function markSeen(c) {
     if (!c) return;
     const set = contest === "beauty" ? seen.l : seen.b;
@@ -607,13 +598,18 @@
       el.type = "button";
       el.className = "cx";
       el.style.setProperty("--card-glow", seriesColor(c));
-      el.innerHTML = `<img alt="" loading="lazy" /><span class="cx-badges">${seen.b.has(c.id) ? '<i title="Battle stats unlocked">⚔</i>' : ""}${seen.l.has(c.id) ? '<i title="Looks unlocked">✦</i>' : ""}</span><span class="cx-name">${c.name}</span><span class="cx-series">${c.series}</span>`;
+      el.innerHTML = `<img alt="" loading="lazy" /><span class="cx-badges">${unlockAll ? "" : (seen.b.has(c.id) ? '<i title="Battle stats unlocked">⚔</i>' : "") + (seen.l.has(c.id) ? '<i title="Looks unlocked">✦</i>' : "")}</span><span class="cx-name">${c.name}</span><span class="cx-series">${c.series}</span>`;
       findImage(c).then((img) => (el.querySelector("img").src = img.url));
       el.addEventListener("click", () => openDetail(c));
       grid.appendChild(el);
     });
     if (!list.length) grid.innerHTML = `<p class="codex-empty">No characters match that search.</p>`;
-    $("codexCount").textContent = `${ROSTER.length} characters · battle stats unlocked ${seen.b.size} · looks unlocked ${seen.l.size}`;
+    $("codexCount").textContent = unlockAll
+      ? `${ROSTER.length} characters · all stats unlocked`
+      : `${ROSTER.length} characters · battle stats unlocked ${seen.b.size} · looks unlocked ${seen.l.size}`;
+    $("unlockAllBtn").setAttribute("aria-pressed", String(unlockAll));
+    $("unlockAllBtn").textContent = unlockAll ? "LOCK UNSEEN STATS" : "UNLOCK ALL";
+    $("codexNote").hidden = unlockAll;
   }
 
   function statRows(labels, values, unlocked, how) {
@@ -635,8 +631,8 @@
     // Values are looked up per category: stats are stored in a different order than the board shows them.
     const battle = window.CATEGORIES.map((cat) => c.stats[STAT_INDEX[cat.key]]);
     const looks = window.BEAUTY_CATEGORIES.map((cat) => window.LOOKS[c.id][LOOK_INDEX[cat.key]]);
-    $("cdBattle").innerHTML = statRows(BATTLE_LABELS, battle, seen.b.has(c.id), "See them in a battle clash to unlock.");
-    $("cdBeauty").innerHTML = statRows(BEAUTY_LABELS, looks, seen.l.has(c.id), "See them in a beauty contest to unlock.");
+    $("cdBattle").innerHTML = statRows(BATTLE_LABELS, battle, hasBattle(c), "See them in a battle clash to unlock.");
+    $("cdBeauty").innerHTML = statRows(BEAUTY_LABELS, looks, hasLooks(c), "See them in a beauty contest to unlock.");
     $("codexDetail").classList.remove("hidden");
     $("cdClose").focus();
   }
@@ -647,6 +643,13 @@
   $("cdClose").addEventListener("click", closeDetail);
   $("codexDetail").addEventListener("click", (e) => { if (e.target.id === "codexDetail") closeDetail(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetail(); });
+  // Shows every stat in the index. Turning it off goes back to what you've actually seen (progress is kept).
+  $("unlockAllBtn").addEventListener("click", () => {
+    unlockAll = !unlockAll;
+    try { localStorage.setItem(UNLOCK_KEY, unlockAll ? "1" : "0"); } catch (e) { /* storage blocked */ }
+    SFX.click();
+    renderCodex();
+  });
   $("codexSearch").addEventListener("input", renderCodex);
   $("codexSeries").addEventListener("change", renderCodex);
   document.querySelectorAll('input[name="codexWho"]').forEach((r) => r.addEventListener("change", renderCodex));

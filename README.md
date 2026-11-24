@@ -18,10 +18,10 @@ Modes:
   Ratings live in `js/looks.js`, along with the list of girls used by the girls-only rosters.
 
 Extras:
-- **Reroll**: once per match. In Standard it swaps your current draw (key R); in Pool Draft it replaces every
-  character nobody has picked yet.
+- **Reroll**: once per match in Standard; it swaps your current draw (key R). Pool Draft has no reroll.
 - **Character index** (start screen, "Characters"): every character with search and filters. Stats unlock once you've
   seen that character in a clash (battle stats in a battle, looks in a beauty contest); unlocks are remembered in your browser.
+  "Unlock all" shows every stat (switch it off to go back to what you've seen).
 - **Music and sound**: all synthesized in `js/audio.js` (no audio files). Separate tracks for the menu, draft, beauty
   contest and clash, sound effects for every action, and signature sounds for the big effects. Toggle music and sound
   with the buttons next to fullscreen.
